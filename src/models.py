@@ -2,6 +2,11 @@ from enum import StrEnum
 
 class Category(StrEnum):
     FOOD = 'Food'
+    GROCERIES = 'Groceries'
+    HEALTH = 'Health'
+    ENTERTAINMENT = 'Entertainment'
+    UTILITIES = 'Utilities'
+    EDUCATION = 'Education'
     OTHER = 'Other'
 
 

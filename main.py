@@ -6,21 +6,32 @@ import sys
 def main() -> None:
     data_manager = DataManager()
     print('Welcome to FinanceFlow')
+    currency = None
+    while currency is None:
+        try:
+            currency = input('Enter Currency (Euro, Dollars, Pounds, Yen, zł)\n>')
+            if currency not in ['Euro', 'Dollars', 'Pounds', 'Yen', 'zł']:
+                raise ValueError('Wrong currency')
+        except ValueError as e:
+            print(f'❌ Error: {e}')
+        
     while True:
         try:
-            print('\nChoose option (1-3)')
+            print('\nChoose option (1-4)')
             print('1. Save expense')
             print('2. Read all expenses')
-            print('3. Exit')
+            print('3. Get most common expense category')
+            print('4. the month with the highest expenses')
+            print('5. Exit')
             option = input('\nEnter your choice\n>')
 
             match option:
                 case '1':
                     name = input('Enter the name of expense\n>')
-                    amount = float(input('Enter amount of expense\n>'))
+                    amount = float(input(f'Enter amount of expense ({currency})\n>'))
                     description = input('Enter description (Leave blank to skip)\n>')
                     id = assign_id()
-                    category = input('Enter the category (Food)\n>')
+                    category = input('Enter the category (Food, Groceries, Health, Entertainment, Education, Utilities, Other)\n>')
                     date_choice = input('Enter date (yes/no) (no to set current date)\n>')
                     
                     if date_choice == 'yes':
@@ -57,9 +68,15 @@ def main() -> None:
                                 expense_dict['date'], 
                                 expense_dict['description']
                             )
-                            print(expense)
+                            print(expense, currency)
                             print('\n\n')
                 case '3':
+                    print(f'The most common expense category: {data_manager.the_most_common_expense_category()}')
+
+                case '4':
+                    print(f'month with the highest expenses: {data_manager.month_with_the_highest_expenses(currency)}')
+
+                case '5':
                     print('Goodbye!')
                     sys.exit()
                 case _:

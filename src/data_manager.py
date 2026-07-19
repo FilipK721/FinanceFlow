@@ -30,3 +30,38 @@ class DataManager:
             expenses = json.load(file)
             return expenses
     
+    def the_most_common_expense_category(self) -> Category:
+        expenses = self.load_all_expenses()
+        if not expenses:
+            raise ValueError('No expenses found')
+            
+        categories = [exp['category'] for exp in expenses if 'category' in exp]
+        if not categories:
+            raise ValueError('No categories found')
+            
+        most_common_string = max(set(categories), key=categories.count)
+        return Category(most_common_string)
+
+    def month_with_the_highest_expenses(self, currency: str) -> str:
+        expenses = self.load_all_expenses()
+        if not expenses:
+            raise ValueError("No expenses found.")
+            
+        monthly_totals = {}
+        for exp in expenses:
+            if 'date' not in exp or 'amount' not in exp:
+                raise ValueError("Invalid expense data structure.")
+            try:
+                month_year = "-".join(exp['date'].split("-")[1:])
+                if len(month_year) != 7:
+                    raise ValueError
+                amount = float(exp['amount'])
+                monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
+            except (ValueError, IndexError):
+                raise ValueError(f"Invalid date or amount format.")
+                
+        if not monthly_totals:
+            raise ValueError("No valid monthly data found.")
+            
+        highest_month = max(monthly_totals, key=monthly_totals.get)
+        return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]}{currency})'

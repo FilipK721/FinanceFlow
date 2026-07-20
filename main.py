@@ -1,4 +1,4 @@
-from src.models import Expense, assign_id
+from src.models import Expense, assign_id, Category
 from src.data_manager import DataManager
 from datetime import datetime
 import sys
@@ -11,18 +11,21 @@ def main() -> None:
         try:
             currency = input('Enter Currency (Euro, Dollars, Pounds, Yen, zł)\n>')
             if currency not in ['Euro', 'Dollars', 'Pounds', 'Yen', 'zł']:
+                currency = None
                 raise ValueError('Wrong currency')
         except ValueError as e:
             print(f'❌ Error: {e}')
         
     while True:
         try:
-            print('\nChoose option (1-4)')
+            print('\nChoose option (1-7)')
             print('1. Save expense')
             print('2. Read all expenses')
-            print('3. Get most common expense category')
-            print('4. the month with the highest expenses')
-            print('5. Exit')
+            print('3. Show all expenses from a given month')
+            print('4. Get most common expense category')
+            print('5. the month with the highest expenses')
+            print('6. Edit expense')
+            print('7. Exit')
             option = input('\nEnter your choice\n>')
 
             match option:
@@ -31,7 +34,7 @@ def main() -> None:
                     amount = float(input(f'Enter amount of expense ({currency})\n>'))
                     description = input('Enter description (Leave blank to skip)\n>')
                     id = assign_id()
-                    category = input('Enter the category (Food, Groceries, Health, Entertainment, Education, Utilities, Other)\n>')
+                    category = Category(input('Enter the category (Food, Groceries, Health, Entertainment, Education, Utilities, Other)\n>'))
                     date_choice = input('Enter date (yes/no) (no to set current date)\n>')
                     
                     if date_choice == 'yes':
@@ -55,28 +58,25 @@ def main() -> None:
                     print('✅ Expense saved successfully!')
                     
                 case '2':
-                    expenses_list = data_manager.load_all_expenses()
-                    if not expenses_list:
-                        raise ValueError('No expenses found!')
-                    else:
-                        for expense_dict in expenses_list:
-                            expense = Expense(
-                                expense_dict['name'],
-                                expense_dict['amount'], 
-                                expense_dict['category'], 
-                                expense_dict['id'], 
-                                expense_dict['date'], 
-                                expense_dict['description']
-                            )
-                            print(expense, currency)
-                            print('\n\n')
+                    data_manager.show_all_expenses(currency)
                 case '3':
+                    month = int(input('Select month (1-12)'))
+                    expenses_in_a_given_month = data_manager.all_expenses_from_a_given_month(month)
+                    for expense in expenses_in_a_given_month:
+                        print(expense)
+                        print('\n\n')
+                case '4':
                     print(f'The most common expense category: {data_manager.the_most_common_expense_category()}')
 
-                case '4':
-                    print(f'month with the highest expenses: {data_manager.month_with_the_highest_expenses(currency)}')
-
                 case '5':
+                    print({data_manager.month_with_the_highest_expenses(currency)})
+                
+                case '6':
+                    data_manager.show_all_expenses(currency)
+                    expense_id = int(input('Enter id of expense that you want to edit\n>'))
+                    data_manager.edit_expense(expense_id)
+
+                case '7':
                     print('Goodbye!')
                     sys.exit()
                 case _:

@@ -20,10 +20,12 @@ class DataManager:
     def save_expense(self, expense: Expense) -> None:
         dict_expense = expense.to_dict()
         all_expenses = self.load_all_expenses()
-        all_expenses.append(dict_expense)
+        corrected_expenses = [expense for expense in all_expenses if expense['id'] != dict_expense['id']]
+                
+        corrected_expenses.append(dict_expense)
 
         with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(all_expenses, file, indent=4)
+            json.dump(corrected_expenses, file, indent=4)
     
     def load_all_expenses(self) -> list[dict[str, int | str | float | Category]]:
         with open(self.path, 'r', encoding='utf-8') as file:
@@ -65,3 +67,106 @@ class DataManager:
             
         highest_month = max(monthly_totals, key=monthly_totals.get)
         return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]}{currency})'
+    
+    def load_expense_by_id(self, expense_id: int) -> dict[str, float | Category | int | str]:
+        found_expense = None
+        expenses = self.load_all_expenses()
+        for expense in expenses:
+            if expense['id'] == expense_id:
+                found_expense = expense
+        if found_expense:
+          return found_expense  
+        else:
+            raise ValueError('Expense not found')
+    def edit_expense(self, expense_id: int) -> None:
+        while True:
+            try:
+                expense_dict = self.load_expense_by_id(expense_id)
+                expense = Expense(
+                    expense_dict['name'],
+                    expense_dict['amount'],
+                    expense_dict['category'],
+                    expense_dict['id'],
+                    expense_dict['date'],
+                    expense_dict['description']
+                )
+                print(f'1. {expense.name}')
+                print(f'2. {expense.amount}')
+                print(f'3. {expense.category}')
+                print(f'4. {expense.description}')
+                print('5. Exit')
+
+
+                option = input(f'What do you want to change (1-5)')
+                match option:
+                    case '1':
+                        new_name = input('Enter new name\n>')
+                        expense.name = new_name
+                        self.save_expense(expense)
+                        break
+                    case '2':
+                        new_amount = float(input('Enter new amount\n>'))
+                        expense.amount = new_amount
+                        self.save_expense(expense)
+                        break
+                    case '3':
+                        print(f'categories: {Category()}')
+                        new_category = Category(input('Enter new category\n>'))
+                        expense.category = new_category
+                        self.save_expense(expense)
+                        break
+                    case '4':
+                        new_description = input('Enter new description\n>')
+                        expense.description = new_description
+                        self.save_expense(expense)
+                        break
+                    case '5':
+                        break
+                    case _:
+                        raise ValueError('Wrong option')
+            except Exception as e:
+                print(f'❌Error: {e.args}')
+                break
+    
+    def show_all_expenses(self, currency: str) -> None:
+        expenses_list = self.load_all_expenses()
+        if not expenses_list:
+            raise ValueError('No expenses found!')
+        else:
+            for expense_dict in expenses_list:
+                expense = Expense(
+                    expense_dict['name'],
+                    expense_dict['amount'], 
+                    expense_dict['category'], 
+                    expense_dict['id'], 
+                    expense_dict['date'], 
+                    expense_dict['description']
+                )
+                print(expense, currency)
+                print('\n\n')
+        
+    def all_expenses_from_a_given_month(self, month: int) -> list[Expense]:
+        all_expenses = self.load_all_expenses()
+        given_month_expenses_dict = []
+        
+        for expense in all_expenses:
+            date = expense['date'].split('-')
+            expense_month = int(date[1]) 
+            
+            if expense_month == month:
+                given_month_expenses_dict.append(expense)
+                
+        if not given_month_expenses_dict:
+            raise ValueError('No expenses in a given month')
+            
+        given_month_expenses = []
+        for expense in given_month_expenses_dict:
+            given_month_expenses.append(Expense(
+                expense['name'],
+                expense['amount'],
+                expense['category'],
+                expense['id'],
+                expense['date'],
+                expense['description']
+            ))
+        return given_month_expenses

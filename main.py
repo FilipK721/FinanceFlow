@@ -18,13 +18,13 @@ def main() -> None:
         
     while True:
         try:
-            print('\nChoose option (1-7)')
+            print('\nChoose option (1-8)')
             print('1. Save expense')
             print('2. Read all expenses')
-            print('3. Show all expenses from a given month')
-            print('4. Get most common expense category')
-            print('5. the month with the highest expenses')
-            print('6. Edit expense')
+            print('3. Edit expense')
+            print('4. Show all expenses from a given month')
+            print('5. Get most common expense category')
+            print('6. the month with the highest expenses')
             print('7. Exit')
             option = input('\nEnter your choice\n>')
 
@@ -60,21 +60,20 @@ def main() -> None:
                 case '2':
                     data_manager.show_all_expenses(currency)
                 case '3':
+                    data_manager.show_all_expenses(currency)
+                    expense_id = int(input('Enter id of expense that you want to edit\n>'))
+                    data_manager.edit_expense(expense_id)
+                case '4':
                     month = int(input('Select month (1-12)'))
                     expenses_in_a_given_month = data_manager.all_expenses_from_a_given_month(month)
                     for expense in expenses_in_a_given_month:
                         print(expense)
                         print('\n\n')
-                case '4':
+                case '5':
                     print(f'The most common expense category: {data_manager.the_most_common_expense_category()}')
 
-                case '5':
-                    print({data_manager.month_with_the_highest_expenses(currency)})
-                
                 case '6':
-                    data_manager.show_all_expenses(currency)
-                    expense_id = int(input('Enter id of expense that you want to edit\n>'))
-                    data_manager.edit_expense(expense_id)
+                    print({data_manager.month_with_the_highest_expenses(currency)})
 
                 case '7':
                     print('Goodbye!')

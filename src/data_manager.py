@@ -27,11 +27,22 @@ class DataManager:
         with open(self.path, 'w', encoding='utf-8') as file:
             json.dump(corrected_expenses, file, indent=4)
     
+    def save_all_expenses(self, expenses: list[dict[str, int | float | str | Category]]) -> None:
+        with open(self.path, 'w', encoding='utf-8') as file:
+            json.dump(expenses, file, indent=4)
+
+
     def load_all_expenses(self) -> list[dict[str, int | str | float | Category]]:
         with open(self.path, 'r', encoding='utf-8') as file:
             expenses = json.load(file)
             return expenses
     
+    def delete_expense(self, expense_id: int) -> None:
+        all_expenses = self.load_all_expenses()
+        corrected_expenses = [expense for expense in all_expenses if expense['id'] != expense_id]
+        
+        self.save_all_expenses(corrected_expenses)
+
     def the_most_common_expense_category(self) -> Category:
         expenses = self.load_all_expenses()
         if not expenses:

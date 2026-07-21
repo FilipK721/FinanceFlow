@@ -1,9 +1,28 @@
+"""
+Data management and business logic module for FinanceFlow.
+
+The DataManager class handles JSON read/write operations, analytical methods,
+and CRUD operations for expenses.
+"""
+
 import json
 import os
 from src.models import Expense, Category, Currency
 
 class DataManager:
+    """
+    Manages persistent data storage, expense operations, and currency configurations.
+
+    Attributes:
+        path (str): Absolute file path to the JSON storage file (expenses.json).
+    """
     def __init__(self) -> None:
+        """
+        Initializes the DataManager instance.
+
+        Sets absolute path to `data/expenses.json`.
+        Creates directory and empty JSON file if they do not exist.
+        """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.path = os.path.join(current_dir, '..', 'data', 'expenses.json')
         self.path = os.path.abspath(self.path)
@@ -18,6 +37,14 @@ class DataManager:
                 json.dump({}, file, indent=4)
 
     def save_expense(self, expense: Expense) -> None:
+        """
+        Saves a new expense or updates an existing record in the database.
+
+        If an expense with the same ID exists, it is overwritten with new data.
+
+        Args:
+            expense (Expense): Expense object to save.
+        """
         dict_expense = expense.to_dict()
         all_expenses = self.load_all_expenses()
         corrected_expenses = [expense for expense in all_expenses if expense['id'] != dict_expense['id']]
@@ -27,24 +54,47 @@ class DataManager:
         self.save_all_expenses(corrected_expenses)
     
     def save_all_expenses(self, expenses: list[dict[str, int | float | str | Category]]) -> None:
+        """
+        Saves a full list of expense dictionaries to the JSON file.
+
+        Args:
+            expenses (list[dict]): List of dictionaries representing expenses.
+        """
         file_data = self.load_file()
         with open(self.path, 'w', encoding='utf-8') as file:
             file_data['expenses'] = expenses
             json.dump(file_data, file, indent=4)
 
-
     def load_all_expenses(self) -> list[dict[str, int | str | float | Category]]:
+        """
+        Loads and returns the list of all expense dictionaries stored in the file.
+
+        Returns:
+            list[dict]: List of expense dictionaries.
+        """
         with open(self.path, 'r', encoding='utf-8') as file:
             data = json.load(file)
             expenses = data['expenses']
             return expenses
     
     def load_file(self) -> dict[str, list[dict] | str]:
+        """
+        Loads raw structure of the entire JSON file.
+
+        Returns:
+            dict[str, list[dict] | str]: Root dictionary stored in the JSON file.
+        """
         with open(self.path, 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data
 
     def delete_expense(self, expense_id: int) -> None:
+        """
+        Deletes an expense with the specified ID from the database.
+
+        Args:
+            expense_id (int): Identifier of the expense to delete.
+        """
         data = self.load_all_expenses()
         all_expenses = data['expenses']
         corrected_expenses = [expense for expense in all_expenses if expense['id'] != expense_id]
@@ -52,6 +102,15 @@ class DataManager:
         self.save_all_expenses(corrected_expenses)
 
     def the_most_common_expense_category(self) -> Category:
+        """
+        Determines and returns the most frequently occurring expense category.
+
+        Returns:
+            Category: Category enum instance corresponding to the most frequent category.
+
+        Raises:
+            ValueError: If no expenses or categories are found in storage.
+        """
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
@@ -64,6 +123,18 @@ class DataManager:
         return Category(most_common_string)
 
     def month_with_the_highest_expenses(self, currency: str) -> str:
+        """
+        Analyzes expense history and finds the month with the highest total spending.
+
+        Args:
+            currency (str): Currency label used in output message.
+
+        Returns:
+            str: Formatted string showing month (MM-YYYY) and total amount.
+
+        Raises:
+            ValueError: If storage is empty or date/amount formats are invalid.
+        """
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError("No expenses found.")
@@ -88,6 +159,18 @@ class DataManager:
         return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]}{currency})'
     
     def load_expense_by_id(self, expense_id: int) -> dict[str, float | Category | int | str]:
+        """
+        Finds and returns an expense dictionary by its ID.
+
+        Args:
+            expense_id (int): ID of the requested expense.
+
+        Returns:
+            dict: Dictionary containing expense details.
+
+        Raises:
+            ValueError: If expense with given ID does not exist.
+        """
         found_expense = None
         expenses = self.load_all_expenses()
         for expense in expenses:
@@ -97,7 +180,16 @@ class DataManager:
           return found_expense  
         else:
             raise ValueError('Expense not found')
+
     def edit_expense(self, expense_id: int) -> None:
+        """
+        Launches an interactive CLI menu to edit fields of a chosen expense.
+
+        Allows modifying name, amount, category, and description.
+
+        Args:
+            expense_id (int): ID of the expense to edit.
+        """
         while True:
             try:
                 expense_dict = self.load_expense_by_id(expense_id)
@@ -148,6 +240,15 @@ class DataManager:
                 break
     
     def show_all_expenses(self, currency: str) -> None:
+        """
+        Prints all saved expenses to the console.
+
+        Args:
+            currency (str): Currency symbol/name displayed alongside amounts.
+
+        Raises:
+            ValueError: If no expenses are found.
+        """
         expenses_list = self.load_all_expenses()
         if not expenses_list:
             raise ValueError('No expenses found!')
@@ -165,6 +266,18 @@ class DataManager:
                 print('\n\n')
         
     def all_expenses_from_a_given_month(self, month: int) -> list[Expense]:
+        """
+        Filters and returns Expense objects from a specific month.
+
+        Args:
+            month (int): Month number (1 to 12).
+
+        Returns:
+            list[Expense]: List of Expense objects for the given month.
+
+        Raises:
+            ValueError: If no expenses exist for the specified month.
+        """
         all_expenses = self.load_all_expenses()
         given_month_expenses_dict = []
         
@@ -191,12 +304,24 @@ class DataManager:
         return given_month_expenses
     
     def set_currency(self, currency: Currency | None) -> None:
+        """
+        Saves default application currency to JSON configuration.
+
+        Args:
+            currency (Currency | None): Currency enum instance or None to reset.
+        """
         file_data = self.load_file()
         file_data['currency'] = currency
         with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(file_data, file)
+            json.dump(file_data, file, indent=4)
     
     def get_currency(self) -> Currency | None:
+        """
+        Reads configured default currency from JSON file.
+
+        Returns:
+            Currency | None: Configured Currency object, or None if not set.
+        """
         file_data = self.load_file()
         if 'currency' not in file_data:
             return None
@@ -205,4 +330,3 @@ class DataManager:
         else:
             currency = Currency(file_data['currency'])
             return currency
-        

@@ -1,9 +1,24 @@
+"""
+Main execution module (entry point) for FinanceFlow application.
+
+Launches interactive command-line interface (CLI) allowing users to enter/edit expenses,
+set currency, and view financial analytics.
+"""
+
 from src.models import Expense, assign_id, Category, Currency
 from src.data_manager import DataManager
 from datetime import datetime
 import sys
 
 def main() -> None:
+    """
+    Main entry function controlling FinanceFlow CLI flow.
+
+    Manages interactive loop:
+    1. Retrieves or initializes currency settings.
+    2. Displays options menu (1-8).
+    3. Processes user input and delegates to DataManager methods.
+    """
     while True:
         data_manager = DataManager()
         print('Welcome to FinanceFlow')
@@ -16,7 +31,7 @@ def main() -> None:
                 print(f'❌ Error: {e}')
         while True:
             try:
-                print('\nChoose option (1-8)')
+                print('\nąChoose option (1-8)')
                 print('1. Save expense')
                 print('2. Read all expenses')
                 print('3. Edit expense')
@@ -60,7 +75,7 @@ def main() -> None:
                         data_manager.show_all_expenses(currency)
                     case '3':
                         data_manager.show_all_expenses(currency)
-                        expense_id = int(input('Enter id of expense that you want to edit\n>'))
+                        expense_id = int(input('Enter id of expense that you want to edit?\n>'))
                         data_manager.edit_expense(expense_id)
                     
                     case '4':

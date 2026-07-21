@@ -9,6 +9,12 @@ class Category(StrEnum):
     EDUCATION = 'Education'
     OTHER = 'Other'
 
+class Currency(StrEnum):
+    EURO = 'Euro'
+    DOLLARS = 'Dollars'
+    POUNDS = 'Pounds'
+    YEN = 'Yen'
+    ZŁ = 'Zł'
 
 class Expense:
     def __init__(self, name: str, amount: float, category: Category, id: int, date: str, description: str | None = None) -> None:

@@ -1,6 +1,6 @@
 import json
 import os
-from src.models import Expense, Category
+from src.models import Expense, Category, Currency
 
 class DataManager:
     def __init__(self) -> None:
@@ -15,7 +15,7 @@ class DataManager:
             
         if not os.path.exists(self.path) or os.stat(self.path).st_size == 0:
             with open(self.path, 'w', encoding='utf-8') as file:
-                json.dump([], file)
+                json.dump({}, file, indent=4)
 
     def save_expense(self, expense: Expense) -> None:
         dict_expense = expense.to_dict()
@@ -24,21 +24,29 @@ class DataManager:
                 
         corrected_expenses.append(dict_expense)
 
-        with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(corrected_expenses, file, indent=4)
+        self.save_all_expenses(corrected_expenses)
     
     def save_all_expenses(self, expenses: list[dict[str, int | float | str | Category]]) -> None:
+        file_data = self.load_file()
         with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(expenses, file, indent=4)
+            file_data['expenses'] = expenses
+            json.dump(file_data, file, indent=4)
 
 
     def load_all_expenses(self) -> list[dict[str, int | str | float | Category]]:
         with open(self.path, 'r', encoding='utf-8') as file:
-            expenses = json.load(file)
+            data = json.load(file)
+            expenses = data['expenses']
             return expenses
     
+    def load_file(self) -> dict[str, list[dict] | str]:
+        with open(self.path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return data
+
     def delete_expense(self, expense_id: int) -> None:
-        all_expenses = self.load_all_expenses()
+        data = self.load_all_expenses()
+        all_expenses = data['expenses']
         corrected_expenses = [expense for expense in all_expenses if expense['id'] != expense_id]
         
         self.save_all_expenses(corrected_expenses)
@@ -181,3 +189,20 @@ class DataManager:
                 expense['description']
             ))
         return given_month_expenses
+    
+    def set_currency(self, currency: Currency | None) -> None:
+        file_data = self.load_file()
+        file_data['currency'] = currency
+        with open(self.path, 'w', encoding='utf-8') as file:
+            json.dump(file_data, file)
+    
+    def get_currency(self) -> Currency | None:
+        file_data = self.load_file()
+        if 'currency' not in file_data:
+            return None
+        elif not file_data['currency']:
+            return None
+        else:
+            currency = Currency(file_data['currency'])
+            return currency
+        

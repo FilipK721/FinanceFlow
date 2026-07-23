@@ -7,8 +7,10 @@ set currency, and view financial analytics.
 
 from src.models import Expense, assign_id, Category, Currency
 from src.data_manager import DataManager
+from src.views import Views
 from datetime import datetime
 import sys
+from rich import print
 from config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 
@@ -22,8 +24,9 @@ def main() -> None:
     3. Processes user input and delegates to DataManager methods.
     """
     while True:
+        views = Views()
         data_manager = DataManager()
-        print('Welcome to FinanceFlow')
+        views.display_welcome_banner()
         currency = data_manager.get_currency()
         while currency is None:
             try:
@@ -34,15 +37,7 @@ def main() -> None:
                 logger.info('Wrong currency entered: %s', e)
         while True:
             try:
-                print('\nChoose option (1-8)')
-                print('1. Save expense')
-                print('2. Read all expenses')
-                print('3. Edit expense')
-                print('4. Change currency')
-                print('5. Show all expenses from a given month')
-                print('6. Get most common expense category')
-                print('7. the month with the highest expenses')
-                print('8. Exit')
+                views.display_menu()
                 option = input('\nEnter your choice\n>')
 
                 match option:
@@ -80,7 +75,7 @@ def main() -> None:
                         print('✅ Expense saved successfully!')
                         
                     case '2':
-                        data_manager.show_all_expenses(currency)
+                        views.show_all_expenses(currency)
                         logger.info('Displayed all expenses')
                     case '3':
                         data_manager.show_all_expenses(currency)
@@ -113,7 +108,7 @@ def main() -> None:
                         sys.exit()
                     case _:
                         logger.info('Invalid menu option %s', option)
-                        raise ValueError('Wrong option! Choose 1, 2, or 3.')
+                        raise ValueError('Wrong option! Choose 1-8.')
 
             except ValueError as e:
                 logger.info('User input error: %s', e)

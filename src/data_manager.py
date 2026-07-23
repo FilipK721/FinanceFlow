@@ -8,6 +8,8 @@ and CRUD operations for expenses.
 import json
 import os
 from src.models import Expense, Category, Currency
+from rich.table import Table
+from rich.console import Console
 from config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 
@@ -28,6 +30,7 @@ class DataManager:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.path = os.path.join(current_dir, '..', 'data', 'expenses.json')
         self.path = os.path.abspath(self.path)
+        self.console = Console()
         
         directory = os.path.dirname(self.path)
         
@@ -256,32 +259,6 @@ class DataManager:
                 logger.exception("Failed to edit expense (id=%s)", expense_id)
                 print(f'❌Error: {e.args}')
                 break
-    
-    def show_all_expenses(self, currency: str) -> None:
-        """
-        Prints all saved expenses to the console.
-
-        Args:
-            currency (str): Currency symbol/name displayed alongside amounts.
-
-        Raises:
-            ValueError: If no expenses are found.
-        """
-        expenses_list = self.load_all_expenses()
-        if not expenses_list:
-            raise ValueError('No expenses found!')
-        else:
-            for expense_dict in expenses_list:
-                expense = Expense(
-                    expense_dict['name'],
-                    expense_dict['amount'], 
-                    expense_dict['category'], 
-                    expense_dict['id'], 
-                    expense_dict['date'], 
-                    expense_dict['description']
-                )
-                print(expense, currency)
-                print('\n\n')
         
     def all_expenses_from_a_given_month(self, month: int) -> list[Expense]:
         """

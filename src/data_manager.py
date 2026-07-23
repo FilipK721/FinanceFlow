@@ -8,6 +8,8 @@ and CRUD operations for expenses.
 import json
 import os
 from src.models import Expense, Category, Currency
+from config.logging import LoggerConfig
+logger = LoggerConfig.get_file_logger(__name__)
 
 class DataManager:
     """
@@ -31,10 +33,12 @@ class DataManager:
         
         if not os.path.exists(directory):
             os.makedirs(directory)
+            logger.info("Created data directory: %s", directory)
             
         if not os.path.exists(self.path) or os.stat(self.path).st_size == 0:
             with open(self.path, 'w', encoding='utf-8') as file:
                 json.dump({}, file, indent=4)
+            logger.info("Created new expenses storage file: %s", self.path)
 
     def save_expense(self, expense: Expense) -> None:
         """
@@ -61,9 +65,13 @@ class DataManager:
             expenses (list[dict]): List of dictionaries representing expenses.
         """
         file_data = self.load_file()
-        with open(self.path, 'w', encoding='utf-8') as file:
-            file_data['expenses'] = expenses
-            json.dump(file_data, file, indent=4)
+        try:
+            with open(self.path, 'w', encoding='utf-8') as file:
+                file_data['expenses'] = expenses
+                json.dump(file_data, file, indent=4)
+        except OSError:
+            logger.exception("Failed to save expenses data")
+            raise
 
     def load_all_expenses(self) -> list[dict[str, int | str | float | Category]]:
         """
@@ -84,9 +92,16 @@ class DataManager:
         Returns:
             dict[str, list[dict] | str]: Root dictionary stored in the JSON file.
         """
-        with open(self.path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
+        try:
+            with open(self.path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+                return data
+        except json.JSONDecodeError:
+            logger.exception("Invalid JSON format in storage file")
+            raise
+        except OSError:
+            logger.exception("Failed to read storage file")
+            raise
 
     def delete_expense(self, expense_id: int) -> None:
         """
@@ -179,6 +194,7 @@ class DataManager:
         if found_expense:
           return found_expense  
         else:
+            logger.warning("Expense not found (id=%s)", expense_id)
             raise ValueError('Expense not found')
 
     def edit_expense(self, expense_id: int) -> None:
@@ -236,6 +252,7 @@ class DataManager:
                     case _:
                         raise ValueError('Wrong option')
             except Exception as e:
+                logger.exception("Failed to edit expense (id=%s)", expense_id)
                 print(f'❌Error: {e.args}')
                 break
     

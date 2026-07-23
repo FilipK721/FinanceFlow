@@ -32,14 +32,14 @@ class Currency(StrEnum):
     - DOLLARS: Dollar ($)
     - POUNDS: Pound (£)
     - YEN: Yen (¥)
-    - ZŁ: Polish Złoty (zł)
+    - PLN: Polish Złoty (Zł)
     """
     
     EURO = 'Euro'
     DOLLARS = 'Dollars'
     POUNDS = 'Pounds'
     YEN = 'Yen'
-    ZŁ = 'Zł'
+    PLN = 'Zł'
 
 
 class Expense:

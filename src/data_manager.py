@@ -38,7 +38,7 @@ class DataManager:
         if not os.path.exists(self.path) or os.stat(self.path).st_size == 0:
             with open(self.path, 'w', encoding='utf-8') as file:
                 json.dump({}, file, indent=4)
-            logger.info("Created new expenses storage file: %s", self.path)
+                logger.info("Created new expenses storage file: %s", self.path)
 
     def save_expense(self, expense: Expense) -> None:
         """

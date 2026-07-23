@@ -33,6 +33,7 @@ class DataManager:
         
         if not os.path.exists(directory):
             os.makedirs(directory)
+
             logger.info("Created data directory: %s", directory)
             
         if not os.path.exists(self.path) or os.stat(self.path).st_size == 0:

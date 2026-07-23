@@ -9,6 +9,8 @@ from src.models import Expense, assign_id, Category, Currency
 from src.data_manager import DataManager
 from datetime import datetime
 import sys
+from config.logging import LoggerConfig
+logger = LoggerConfig.get_file_logger(__name__)
 
 def main() -> None:
     """
@@ -29,6 +31,7 @@ def main() -> None:
                 data_manager.set_currency(currency)
             except ValueError as e:
                 print(f'❌ Error: {e}')
+                logger.info('Wrong currency entered: %s', e)
         while True:
             try:
                 print('\nChoose option (1-8)')
@@ -66,20 +69,28 @@ def main() -> None:
                             date = datetime.today().strftime('%d-%m-%Y')
                         else:
                             raise ValueError('Wrong option! Type "yes" or "no".')
-                        
                         expense = Expense(name, amount, category, id, date, description)
                         data_manager.save_expense(expense)
+                        logger.info(
+                                    'Expense saved (id=%s, amount=%.2f, category=%s)',
+                                    expense.id,
+                                    expense.amount,
+                                    expense.category.value,
+                                )
                         print('✅ Expense saved successfully!')
                         
                     case '2':
                         data_manager.show_all_expenses(currency)
+                        logger.info('Displayed all expenses')
                     case '3':
                         data_manager.show_all_expenses(currency)
                         expense_id = int(input('Enter id of expense that you want to edit?\n>'))
                         data_manager.edit_expense(expense_id)
+                        logger.info('Expense edited (id=%s)', expense_id)
                     
                     case '4':
                         data_manager.set_currency(None)
+                        logger.info('currency reset by user')
                         break
                     case '5':
                         month = int(input('Select month (1-12)'))
@@ -87,21 +98,28 @@ def main() -> None:
                         for expense in expenses_in_a_given_month:
                             print(expense)
                             print('\n\n')
+                        logger.info('Displayed expenses for month %s', month)
                     case '6':
                         print(f'The most common expense category: {data_manager.the_most_common_expense_category()}')
+                        logger.info('Displayed most common expense category')
 
                     case '7':
                         print({data_manager.month_with_the_highest_expenses(currency)})
+                        logger.info('Displayed month with highest expenses')
 
                     case '8':
                         print('Goodbye!')
+                        logger.info('Aplication closed by user')
                         sys.exit()
                     case _:
+                        logger.info('Invalid menu option %s', option)
                         raise ValueError('Wrong option! Choose 1, 2, or 3.')
 
             except ValueError as e:
+                logger.info('User input error: %s', e)
                 print(f'❌ Error: {e}')
             except Exception as e:
+                logger.error('Unexpected application error')
                 print(f'❌ Unexpected error: {e}')
 
 if __name__ == '__main__':

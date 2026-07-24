@@ -18,10 +18,10 @@ class Category(StrEnum):
     GROCERIES = 'Groceries'
     HEALTH = 'Health'
     ENTERTAINMENT = 'Entertainment'
-    UTILITIES = 'Utilities'
+    BILLS = 'Bills'
     EDUCATION = 'Education'
+    FUEL = 'Fuel'
     OTHER = 'Other'
-
 
 class Currency(StrEnum):
     """

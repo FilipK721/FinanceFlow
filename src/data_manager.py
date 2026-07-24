@@ -8,7 +8,6 @@ and CRUD operations for expenses.
 import json
 import os
 from src.models import Expense, Category, Currency
-from rich.table import Table
 from rich.console import Console
 from config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
@@ -77,7 +76,7 @@ class DataManager:
             logger.exception("Failed to save expenses data")
             raise
 
-    def load_all_expenses(self) -> list[dict[str, int | str | float | Category]]:
+    def load_all_expenses(self) -> list[dict]:
         """
         Loads and returns the list of all expense dictionaries stored in the file.
 
@@ -86,8 +85,7 @@ class DataManager:
         """
         with open(self.path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-            expenses = data['expenses']
-            return expenses
+        return data.get('expenses', [])
     
     def load_file(self) -> dict[str, list[dict] | str]:
         """
@@ -210,6 +208,8 @@ class DataManager:
         Args:
             expense_id (int): ID of the expense to edit.
         """
+        from src.views import Views
+        self.views = Views()
         while True:
             try:
                 expense_dict = self.load_expense_by_id(expense_id)
@@ -221,33 +221,33 @@ class DataManager:
                     expense_dict['date'],
                     expense_dict['description']
                 )
-                print(f'1. {expense.name}')
-                print(f'2. {expense.amount}')
-                print(f'3. {expense.category}')
-                print(f'4. {expense.description}')
-                print('5. Exit')
+                self.console.print(f'1. {expense.name}', style='bold white')
+                self.console.print(f'2. {expense.amount}', style='bold white')
+                self.console.print(f'3. {expense.category}', style='bold white')
+                self.console.print(f'4. {expense.description}', style='bold white')
+                self.console.print('5. Exit', style='bold red')
 
 
-                option = input(f'What do you want to change (1-5)')
+                option = self.views.get_str('What do you want to change', ['1', '2', '3', '4', '5'])
                 match option:
                     case '1':
-                        new_name = input('Enter new name\n>')
+                        new_name = self.views.get_str('Enter new name')
                         expense.name = new_name
                         self.save_expense(expense)
                         break
                     case '2':
-                        new_amount = float(input('Enter new amount\n>'))
+                        currency = self.get_currency()
+                        new_amount = self.views.get_amount(currency)
                         expense.amount = new_amount
                         self.save_expense(expense)
                         break
                     case '3':
-                        print(f'categories: {Category()}')
-                        new_category = Category(input('Enter new category\n>'))
+                        new_category = self.views.choose_category()
                         expense.category = new_category
                         self.save_expense(expense)
                         break
                     case '4':
-                        new_description = input('Enter new description\n>')
+                        new_description = self.views.get_str('Enter new description')
                         expense.description = new_description
                         self.save_expense(expense)
                         break
@@ -256,9 +256,8 @@ class DataManager:
                     case _:
                         raise ValueError('Wrong option')
             except Exception as e:
+                self.console(f'❌Error: {e.args}', style='bold red')
                 logger.exception("Failed to edit expense (id=%s)", expense_id)
-                print(f'❌Error: {e.args}')
-                break
         
     def all_expenses_from_a_given_month(self, month: int) -> list[Expense]:
         """
@@ -325,3 +324,10 @@ class DataManager:
         else:
             currency = Currency(file_data['currency'])
             return currency
+
+    def get_all_ids(self) -> list[str]:
+        expenses = self.load_all_expenses()
+        ids = []
+        for expense in expenses:
+            ids.append(str(expense['id']))
+        return ids

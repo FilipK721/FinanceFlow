@@ -10,7 +10,7 @@ from src.data_manager import DataManager
 from src.views import Views
 from datetime import datetime
 import sys
-from rich import print
+from rich.console import Console
 from config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 
@@ -24,6 +24,7 @@ def main() -> None:
     3. Processes user input and delegates to DataManager methods.
     """
     while True:
+        console = Console()
         views = Views()
         data_manager = DataManager()
         views.display_welcome_banner()
@@ -33,26 +34,26 @@ def main() -> None:
                 currency = Currency(input('Enter Currency (Euro, Dollars, Pounds, Yen, Zł)\n>'))
                 data_manager.set_currency(currency)
             except ValueError as e:
-                print(f'❌ Error: {e}')
+                console.print(f'❌ Error: {e}', style='bold red')
                 logger.info('Wrong currency entered: %s', e)
         while True:
             try:
                 views.display_menu()
-                option = input('\nEnter your choice\n>')
+                option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '6', '7', '8'])
 
                 match option:
                     case '1':
-                        name = input('Enter the name of expense\n>')
-                        amount = float(input(f'Enter amount of expense ({currency})\n>'))
-                        description = input('Enter description (Leave blank to skip)\n>')
+                        name = views.get_str('Enter the name of expense')
+                        amount = views.get_amount(currency)
+                        description = views.get_str('Enter description (Leave blank to skip)')
                         id = assign_id()
-                        category = Category(input('Enter the category (Food, Groceries, Health, Entertainment, Education, Utilities, Other)\n>'))
-                        date_choice = input('Enter date (yes/no) (no to set current date)\n>')
+                        category = views.choose_category()
+                        date_choice = views.confirm('Do you want to enter date?')
                         
-                        if date_choice == 'yes':
-                            year = int(input('Enter year\n>'))
-                            month = int(input('Enter month (1-12)\n>'))
-                            day = int(input('Enter day (1-31)\n>'))
+                        if date_choice == True:
+                            year = views.get_int('Enter year')
+                            month = views.get_int('Enter month (1-12)')
+                            day = views.get_int('Enter day (1-31')
                             if not (1 <= month <= 12):
                                 raise ValueError('Wrong month! (1-12)')
                             if not (1 <= day <= 31):
@@ -60,10 +61,10 @@ def main() -> None:
                             
                             date = datetime(year, month, day).strftime('%d-%m-%Y')
                             
-                        elif date_choice == 'no':
+                        elif date_choice == False:
                             date = datetime.today().strftime('%d-%m-%Y')
                         else:
-                            raise ValueError('Wrong option! Type "yes" or "no".')
+                            raise ValueError('Wrong option! Type "y" or "n".')
                         expense = Expense(name, amount, category, id, date, description)
                         data_manager.save_expense(expense)
                         logger.info(
@@ -72,14 +73,15 @@ def main() -> None:
                                     expense.amount,
                                     expense.category.value,
                                 )
-                        print('✅ Expense saved successfully!')
+                        console.print('[green]✅ Expense saved successfully![/green]')
                         
                     case '2':
                         views.show_all_expenses(currency)
                         logger.info('Displayed all expenses')
                     case '3':
-                        data_manager.show_all_expenses(currency)
-                        expense_id = int(input('Enter id of expense that you want to edit?\n>'))
+                        views.show_all_expenses(currency)
+                        ids = data_manager.get_all_ids()
+                        expense_id = views.get_int('Enter id of expense that you want to edit', ids)
                         data_manager.edit_expense(expense_id)
                         logger.info('Expense edited (id=%s)', expense_id)
                     
@@ -109,13 +111,9 @@ def main() -> None:
                     case _:
                         logger.info('Invalid menu option %s', option)
                         raise ValueError('Wrong option! Choose 1-8.')
-
-            except ValueError as e:
-                logger.info('User input error: %s', e)
-                print(f'❌ Error: {e}')
             except Exception as e:
                 logger.error('Unexpected application error')
-                print(f'❌ Unexpected error: {e}')
+                console.print(f'❌ Unexpected error: {e}', style='bold red')
 
 if __name__ == '__main__':
     main()

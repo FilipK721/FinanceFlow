@@ -77,7 +77,7 @@ class Views:
 
     def get_category(self) -> Category:
         self._show_categories()
-        categories = [category for category in Category]
+        categories = Category.get_all_values()
 
         result = Prompt.ask(
             '[bold magenta]Enter the category[/bold magenta]',
@@ -109,7 +109,7 @@ class Views:
         return result
 
     def get_currency_from_user(self) -> Currency:
-        currencies = [currency for currency in Currency]
+        currencies = Currency.get_all_values()
         currency = Prompt.ask(
             '[bold dark_blue]Enter the currency[/bold dark_blue]',
             choices=currencies,

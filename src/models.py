@@ -23,6 +23,10 @@ class Category(StrEnum):
     FUEL = 'Fuel'
     OTHER = 'Other'
 
+    @classmethod
+    def get_all_values(cls) -> list[str]:
+        return [item.value for item in cls]
+
 class Currency(StrEnum):
     """
     Enum representing supported currencies in the application.
@@ -41,6 +45,9 @@ class Currency(StrEnum):
     YEN = 'Yen'
     PLN = 'Zł'
 
+    @classmethod
+    def get_all_values(cls) -> list[str]:
+        return [item.value for item in cls]
 
 class Expense:
     """
@@ -62,7 +69,7 @@ class Expense:
         category: Category,
         id: int,
         date: str,
-        description: str | None = None
+        description: str = ''
     ) -> None:
         """
         Initializes a new instance of the Expense class.
@@ -75,6 +82,8 @@ class Expense:
             date (str): Transaction date in DD-MM-YYYY format.
             description (str | None, optional): Additional description. Defaults to None.
         """
+        if amount < 0:
+            raise ValueError('Amount cannot be negative')
         self.name = name
         self.amount = amount
         self.category = category
@@ -107,12 +116,12 @@ class Expense:
         """
         if self.description:
             return (
-                f'name: {self.name},\n'
-                f'amount: {self.amount},\n'
-                f'category: {self.category},\n'
-                f'description:\n{self.description},\n'
-                f'id: {self.id},\n'
-                f'date: {self.date}'
+f'name: {self.name},\n'
+f'amount: {self.amount},\n'
+f'category: {self.category},\n'
+f'description:{self.description},\n'
+f'id: {self.id},\n'
+f'date: {self.date}'
             )
         else:
             return (

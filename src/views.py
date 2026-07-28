@@ -31,7 +31,8 @@ class Views:
                 table.add_column("Category", style="magenta")
                 table.add_column("Id", style="cyan", justify="center")
                 table.add_column("Date", justify="center")
-                for expense in expenses:
+                sorted_expenses = sorted(expenses, key=lambda expense: expense['id'])
+                for expense in sorted_expenses:
                     table.add_row(
                         expense['name'],
                         f"{expense['amount']:.2f}",
@@ -74,7 +75,7 @@ class Views:
         self.console.print(f'[cyan]•[/cyan]{Category.FUEL} ⛽️')
         self.console.print(f'[cyan]•[/cyan]{Category.OTHER} 🔚')
 
-    def choose_category(self) -> Category:
+    def get_category(self) -> Category:
         self._show_categories()
         categories = [category for category in Category]
 
@@ -93,12 +94,12 @@ class Views:
         )
         return amount
 
-    def get_str(self, message: str, options: list[str] | None = None) -> str:
-        result = Prompt.ask(f'[bold magenta]{message}[/bold magenta]', choices=options)
+    def get_str(self, message: str, options: list[str] | None = None, show_choices: bool = True) -> str:
+        result = Prompt.ask(f'[bold magenta]{message}[/bold magenta]', choices=options, show_choices=show_choices)
         return result
 
-    def get_int(self, message: str, options: list[str] | None = None) -> int:
-        result = IntPrompt.ask(f'[bold dark_blue]{message}[/bold dark_blue]', choices=options)
+    def get_int(self, message: str, options: list[str] | None = None, show_choices: bool = True) -> int:
+        result = IntPrompt.ask(f'[bold dark_blue]{message}[/bold dark_blue]', choices=options, show_choices=show_choices)
         return result
 
     def confirm(self, message: str) -> bool:
@@ -106,3 +107,36 @@ class Views:
             f'[bold green]{message}[/bold green]'
         )
         return result
+
+    def get_currency_from_user(self) -> Currency:
+        currencies = [currency for currency in Currency]
+        currency = Prompt.ask(
+            '[bold dark_blue]Enter the currency[/bold dark_blue]',
+            choices=currencies,
+            default='Euro'
+        )
+        return Currency(currency)
+
+    def show_all_expenses_in_a_given_month(self, month: int, currency: Currency) -> None:
+        all_expenses_from_a_given_month = self.data_manager.all_expenses_from_a_given_month(month)
+        if not all_expenses_from_a_given_month:
+            self.console.print('No expenses in a given month found!', style='red')
+            return
+        table = Table(title=f'📊 Expenses ({currency})')
+        table.add_column("Name", style="bold")
+        table.add_column("Amount", justify="right", style="green")
+        table.add_column("Description")
+        table.add_column("Category", style="magenta")
+        table.add_column("Id", style="cyan", justify="center")
+        table.add_column("Date", justify="center")
+        sorted_expenses = sorted(all_expenses_from_a_given_month, key=lambda expense: expense['id'])
+        for expense in sorted_expenses:
+            table.add_row(
+                expense['name'],
+                f"{expense['amount']:.2f}",
+                expense["description"],
+                expense['category'],
+                str(expense['id']),
+                expense['date']
+            )
+        self.console.print(table)

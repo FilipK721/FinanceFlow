@@ -31,7 +31,7 @@ def main() -> None:
         currency = data_manager.get_currency()
         while currency is None:
             try:
-                currency = Currency(input('Enter Currency (Euro, Dollars, Pounds, Yen, Zł)\n>'))
+                currency = views.get_currency_from_user()
                 data_manager.set_currency(currency)
             except ValueError as e:
                 console.print(f'❌ Error: {e}', style='bold red')
@@ -47,20 +47,16 @@ def main() -> None:
                         amount = views.get_amount(currency)
                         description = views.get_str('Enter description (Leave blank to skip)')
                         id = assign_id()
-                        category = views.choose_category()
-                        date_choice = views.confirm('Do you want to enter date?')
+                        category = views.get_category()
+                        date_choice = views.confirm('Do you want to enter date? (n to set current date)')
                         
                         if date_choice == True:
                             year = views.get_int('Enter year')
-                            month = views.get_int('Enter month (1-12)')
-                            day = views.get_int('Enter day (1-31')
-                            if not (1 <= month <= 12):
-                                raise ValueError('Wrong month! (1-12)')
-                            if not (1 <= day <= 31):
-                                raise ValueError('Wrong day! (1-31)')
-                            
+                            month_options = [str(option) for option in range(1, 32)]
+                            month = views.get_int('Enter month (1-12)', options=month_options, show_choices=False)
+                            day_options = [str(option) for option in range(1, 13)]
+                            day = views.get_int('Enter day (1-31', options=day_options, show_choices=False)
                             date = datetime(year, month, day).strftime('%d-%m-%Y')
-                            
                         elif date_choice == False:
                             date = datetime.today().strftime('%d-%m-%Y')
                         else:
@@ -80,7 +76,7 @@ def main() -> None:
                         logger.info('Displayed all expenses')
                     case '3':
                         views.show_all_expenses(currency)
-                        ids = data_manager.get_all_ids()
+                        ids = sorted(data_manager.get_all_ids())
                         expense_id = views.get_int('Enter id of expense that you want to edit', ids)
                         data_manager.edit_expense(expense_id)
                         logger.info('Expense edited (id=%s)', expense_id)
@@ -90,22 +86,19 @@ def main() -> None:
                         logger.info('currency reset by user')
                         break
                     case '5':
-                        month = int(input('Select month (1-12)'))
-                        expenses_in_a_given_month = data_manager.all_expenses_from_a_given_month(month)
-                        for expense in expenses_in_a_given_month:
-                            print(expense)
-                            print('\n\n')
+                        month_options = [str(option) for option in range(1, 13)]
+                        month = views.get_int('Select month (1-12)', options=month_options, show_choices=False)
+                        views.show_all_expenses_in_a_given_month(month, currency)
                         logger.info('Displayed expenses for month %s', month)
                     case '6':
-                        print(f'The most common expense category: {data_manager.the_most_common_expense_category()}')
+                        console.print(f'The most common expense category: {data_manager.the_most_common_expense_category()}', style='bold blue')
                         logger.info('Displayed most common expense category')
-
                     case '7':
-                        print({data_manager.month_with_the_highest_expenses(currency)})
+                        console.print(data_manager.month_with_the_highest_expenses(currency), style='bold blue')
                         logger.info('Displayed month with highest expenses')
 
                     case '8':
-                        print('Goodbye!')
+                        console.print('Goodbye!', style='green')
                         logger.info('Aplication closed by user')
                         sys.exit()
                     case _:

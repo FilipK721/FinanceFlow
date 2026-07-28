@@ -173,7 +173,7 @@ class DataManager:
             raise ValueError("No valid monthly data found.")
             
         highest_month = max(monthly_totals, key=monthly_totals.get)
-        return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]}{currency})'
+        return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]} {currency})'
     
     def load_expense_by_id(self, expense_id: int) -> dict[str, float | Category | int | str]:
         """
@@ -242,7 +242,7 @@ class DataManager:
                         self.save_expense(expense)
                         break
                     case '3':
-                        new_category = self.views.choose_category()
+                        new_category = self.views.get_category()
                         expense.category = new_category
                         self.save_expense(expense)
                         break
@@ -259,7 +259,7 @@ class DataManager:
                 self.console(f'❌Error: {e.args}', style='bold red')
                 logger.exception("Failed to edit expense (id=%s)", expense_id)
         
-    def all_expenses_from_a_given_month(self, month: int) -> list[Expense]:
+    def all_expenses_from_a_given_month(self, month: int) -> list[dict]:
         """
         Filters and returns Expense objects from a specific month.
 
@@ -282,20 +282,7 @@ class DataManager:
             if expense_month == month:
                 given_month_expenses_dict.append(expense)
                 
-        if not given_month_expenses_dict:
-            raise ValueError('No expenses in a given month')
-            
-        given_month_expenses = []
-        for expense in given_month_expenses_dict:
-            given_month_expenses.append(Expense(
-                expense['name'],
-                expense['amount'],
-                expense['category'],
-                expense['id'],
-                expense['date'],
-                expense['description']
-            ))
-        return given_month_expenses
+        return given_month_expenses_dict
     
     def set_currency(self, currency: Currency | None) -> None:
         """

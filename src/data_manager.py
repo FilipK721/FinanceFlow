@@ -68,13 +68,9 @@ class DataManager:
             expenses (list[dict]): List of dictionaries representing expenses.
         """
         file_data = self.load_file()
-        try:
-            with open(self.path, 'w', encoding='utf-8') as file:
-                file_data['expenses'] = expenses
-                json.dump(file_data, file, indent=4)
-        except OSError:
-            logger.exception("Failed to save expenses data")
-            raise
+        with open(self.path, 'w', encoding='utf-8') as file:
+            file_data['expenses'] = expenses
+            json.dump(file_data, file, indent=4)
 
     def load_all_expenses(self) -> list[dict]:
         """
@@ -83,8 +79,7 @@ class DataManager:
         Returns:
             list[dict]: List of expense dictionaries.
         """
-        with open(self.path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
+        data = self.load_file()
         return data.get('expenses', [])
     
     def load_file(self) -> dict[str, list[dict] | str]:
@@ -94,16 +89,10 @@ class DataManager:
         Returns:
             dict[str, list[dict] | str]: Root dictionary stored in the JSON file.
         """
-        try:
-            with open(self.path, 'r', encoding='utf-8') as file:
-                data = json.load(file)
-                return data
-        except json.JSONDecodeError:
-            logger.exception("Invalid JSON format in storage file")
-            raise
-        except OSError:
-            logger.exception("Failed to read storage file")
-            raise
+
+        with open(self.path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return data
 
     def delete_expense(self, expense_id: int) -> None:
         """
@@ -112,10 +101,16 @@ class DataManager:
         Args:
             expense_id (int): Identifier of the expense to delete.
         """
-        data = self.load_all_expenses()
-        all_expenses = data['expenses']
-        corrected_expenses = [expense for expense in all_expenses if expense['id'] != expense_id]
-        
+        expenses = self.load_all_expenses()
+        if not expenses or expenses == []:
+            raise ValueError('No expenses found')
+        expense_with_correct_id = None
+        for expense in expenses:
+            if expense['id'] == expense_id:
+                expense_with_correct_id = expense
+        if not expense_with_correct_id:
+            raise KeyError('Expense id not found')
+        corrected_expenses = [expense for expense in expenses if expense['id'] != expense_id]
         self.save_all_expenses(corrected_expenses)
 
     def the_most_common_expense_category(self) -> Category:
@@ -133,9 +128,7 @@ class DataManager:
             raise ValueError('No expenses found')
             
         categories = [exp['category'] for exp in expenses if 'category' in exp]
-        if not categories:
-            raise ValueError('No categories found')
-            
+
         most_common_string = max(set(categories), key=categories.count)
         return Category(most_common_string)
 
@@ -158,23 +151,15 @@ class DataManager:
             
         monthly_totals = {}
         for exp in expenses:
-            if 'date' not in exp or 'amount' not in exp:
-                raise ValueError("Invalid expense data structure.")
-            try:
-                month_year = "-".join(exp['date'].split("-")[1:])
-                if len(month_year) != 7:
-                    raise ValueError
-                amount = float(exp['amount'])
-                monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
-            except (ValueError, IndexError):
-                raise ValueError(f"Invalid date or amount format.")
+            month_year = "-".join(exp['date'].split("-")[1:])
+            amount = float(exp['amount'])
+            monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
                 
-        if not monthly_totals:
-            raise ValueError("No valid monthly data found.")
             
         highest_month = max(monthly_totals, key=monthly_totals.get)
         return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]} {currency})'
-    
+
+
     def load_expense_by_id(self, expense_id: int) -> dict[str, float | Category | int | str]:
         """
         Finds and returns an expense dictionary by its ID.
@@ -312,9 +297,11 @@ class DataManager:
             currency = Currency(file_data['currency'])
             return currency
 
-    def get_all_ids(self) -> list[str]:
+    def get_all_ids(self) -> list[int]:
         expenses = self.load_all_expenses()
+        if not expenses:
+            raise ValueError('No expenses found')
         ids = []
         for expense in expenses:
-            ids.append(str(expense['id']))
+            ids.append(expense['id'])
         return ids

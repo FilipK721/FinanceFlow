@@ -52,7 +52,7 @@ class Views:
         self.console.print(Panel(welcome_text, border_style="green", expand=False))
 
     def display_menu(self) -> None:
-        menu_text = (
+        menu_text = (       # TODO Add delete func
             "[bold cyan]1.[/bold cyan] ➕ [white]Save expense[/white]\n"
             "[bold cyan]2.[/bold cyan] 📜 [white]Show expenses[/white]\n"
             "[bold cyan]3.[/bold cyan] ✏️  [white]Edit expense[/white]\n"

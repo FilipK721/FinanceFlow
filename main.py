@@ -39,7 +39,7 @@ def main() -> None:
         while True:
             try:
                 views.display_menu()
-                option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '6', '7', '8'])
+                option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '6', '7', '8', '9'])
 
                 match option:
                     case '1':
@@ -77,7 +77,10 @@ def main() -> None:
                     case '3':
                         views.show_all_expenses(currency)
                         ids = sorted(data_manager.get_all_ids())
-                        expense_id = views.get_int('Enter id of expense that you want to edit', ids)
+                        str_ids = []
+                        for id in ids:
+                            str_ids.append(str(id))
+                        expense_id = views.get_int('Enter id of expense that you want to edit', str_ids)
                         data_manager.edit_expense(expense_id)
                         logger.info('Expense edited (id=%s)', expense_id)
                     
@@ -85,19 +88,36 @@ def main() -> None:
                         data_manager.set_currency(None)
                         logger.info('currency reset by user')
                         break
+
                     case '5':
+                        confirmed = views.confirm('Do you want to delete expense?')
+                        if confirmed == True:
+                            views.show_all_expenses(currency)
+                            ids = data_manager.get_all_ids()
+                            str_ids = []
+                            for id in ids:
+                                str_ids.append(str(id))
+                            expense_id = views.get_int('Enter the id of expense that you want to delete', sorted(str_ids))
+                            data_manager.delete_expense(expense_id)
+                            logger.info('Deleted expense with id: %s', expense_id)
+                            console.print('✅ Expense deleted successfully!', style='bright_green')
+                        else:
+                            console.print('Coming back to menu', style='bold white')
+                            break
+
+                    case '6':
                         month_options = [str(option) for option in range(1, 13)]
                         month = views.get_int('Select month (1-12)', options=month_options, show_choices=False)
                         views.show_all_expenses_in_a_given_month(month, currency)
                         logger.info('Displayed expenses for month %s', month)
-                    case '6':
+                    case '7':
                         console.print(f'The most common expense category: {data_manager.the_most_common_expense_category()}', style='bold blue')
                         logger.info('Displayed most common expense category')
-                    case '7':
+                    case '8':
                         console.print(data_manager.month_with_the_highest_expenses(currency), style='bold blue')
                         logger.info('Displayed month with highest expenses')
 
-                    case '8':
+                    case '9':
                         console.print('Goodbye!', style='green')
                         logger.info('Aplication closed by user')
                         sys.exit()

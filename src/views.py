@@ -52,15 +52,16 @@ class Views:
         self.console.print(Panel(welcome_text, border_style="green", expand=False))
 
     def display_menu(self) -> None:
-        menu_text = (       # TODO Add delete func
+        menu_text = (
             "[bold cyan]1.[/bold cyan] ➕ [white]Save expense[/white]\n"
             "[bold cyan]2.[/bold cyan] 📜 [white]Show expenses[/white]\n"
             "[bold cyan]3.[/bold cyan] ✏️  [white]Edit expense[/white]\n"
             "[bold cyan]4.[/bold cyan] 💱 [white]Change currency[/white]\n"
-            "[bold cyan]5.[/bold cyan] 📅 [white]Show all expenses from a given month[/white]\n"
-            "[bold cyan]6.[/bold cyan] 📊 [white]Get most common expense cateogry[/white]\n"
-            "[bold cyan]7.[/bold cyan] 📈 [white]Show month with the highest expenses[/white]\n"
-            "[bold red]8.[/bold red] 🔚 [white]Exit[/white]"
+            "[bold cyan]5.[/bold cyan] ❌ [white]Delete expense[/white]\n"
+            "[bold cyan]6.[/bold cyan] 📅 [white]Show all expenses from a given month[/white]\n"
+            "[bold cyan]7.[/bold cyan] 📊 [white]Get most common expense cateogry[/white]\n"
+            "[bold cyan]8.[/bold cyan] 📈 [white]Show month with the highest expenses[/white]\n"
+            "[bold red]9.[/bold red] 🔚 [white]Exit[/white]"
         )
         self.console.print(Panel(menu_text, title='[bold green]💸 FinanceFlow Menu 💸[/bold green]'))
 

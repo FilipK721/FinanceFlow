@@ -2,41 +2,39 @@ import pytest
 from src.models import Expense, Category, assign_id, Currency
 from unittest.mock import patch
 
-@pytest.fixture
-def sample_expense() -> Expense:
-    return Expense('Pizza', 15.50, Category.FOOD, 1, '28-07-2026')
 
 class TestExpense:
     def test_raises_error_when_amount_is_negative(self) -> None:
         with pytest.raises(ValueError) as err:
             Expense('A', -5, Category.FUEL, 1, '')
 
-    def test_to_dict(self, sample_expense) -> None:
-        dict_expense = sample_expense.to_dict()
+    def test_to_dict(self, sample_expenses) -> None:
+        dict_expense = sample_expenses[0].to_dict()
 
         assert 'Pizza' == dict_expense['name']
-        assert 15.50 == dict_expense['amount']
+        assert 40 == dict_expense['amount']
         assert Category.FOOD == dict_expense['category']
         assert '' == dict_expense['description']
         assert 1 == dict_expense['id']
-        assert '28-07-2026' == dict_expense['date']
+        assert '07-08-2026' == dict_expense['date']
     
-    def test_str(self, sample_expense) -> None:
-        str_expense = str(sample_expense)
+    def test_str(self, sample_expenses) -> None:
+        expense = sample_expenses[0]
+        str_expense = str(expense)
 
-        if sample_expense.description:
-            assert str_expense == f"""name: {sample_expense.name},
-amount: {sample_expense.amount},
-category: {sample_expense.category},
-description:{sample_expense.description},
-id: {sample_expense.id},
-date: {sample_expense.date}"""
+        if expense.description:
+            assert str_expense == f"""name: {expense.name},
+amount: {expense.amount},
+category: {expense.category},
+description:{expense.description},
+id: {expense.id},
+date: {expense.date}"""
         else:
-            assert str_expense == f"""name: {sample_expense.name},
-amount: {sample_expense.amount},
-category: {sample_expense.category},
-id: {sample_expense.id},
-date: {sample_expense.date}"""
+            assert str_expense == f"""name: {expense.name},
+amount: {expense.amount},
+category: {expense.category},
+id: {expense.id},
+date: {expense.date}"""
     
 class TestCategory:
     def test_values(self) -> None:

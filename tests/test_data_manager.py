@@ -1,14 +1,8 @@
 import pytest
-from src.data_manager import DataManager
 from src.models import Expense, Category, Currency
 import os
 import json
-from unittest.mock import patch
-
-@pytest.fixture
-def sample_manager(fs) -> DataManager:
-    manager = DataManager()
-    return manager
+from unittest.mock import patch, MagicMock
 
 class TestDataManager:
     def test_data_manager_init(self, sample_manager) -> None:
@@ -43,8 +37,8 @@ class TestDataManager:
 
             assert 'No permission' in str(err.value)
 
-    def test_save_expense(self, sample_manager) -> None:
-        expense = Expense('A', 100, Category.FOOD, 1, '26-07-2026')
+    def test_save_expense(self, sample_manager, sample_expenses) -> None:
+        expense = sample_expenses[0]
         sample_manager.save_expense(expense)
         with open(sample_manager.path, 'r') as file:
             data = json.load(file)
@@ -80,6 +74,159 @@ class TestDataManager:
         assert expenses == file_data['expenses']
         assert file_data['expenses'] == expenses
 
+    class TestEditExpense:
+        
+        def test_edit_expense_name_success(self, sample_manager, sample_expenses) -> None:
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+
+            sample_manager.load_expense_by_id = MagicMock(return_value=mock_expense_dict)
+            sample_manager.save_expense = MagicMock()
+            sample_manager.get_currency = MagicMock(return_value="Euro")
+            sample_manager.console = MagicMock() 
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.side_effect = ['1', 'New name']
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_called_once()
+            saved_expense = sample_manager.save_expense.call_args[0][0]
+
+            assert isinstance(saved_expense, Expense)
+            assert saved_expense.name == 'New name'
+            assert saved_expense.amount == 40
+        def test_edit_expense_amount_success(self, sample_manager, sample_expenses):
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+            mock_expense_dict['id'] = expense_id
+
+            sample_manager.load_expense_by_id = MagicMock(return_value=mock_expense_dict)
+            sample_manager.save_expense = MagicMock()
+            sample_manager.get_currency = MagicMock(return_value="Euro")
+            sample_manager.console = MagicMock()
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.return_value = '2'
+                mock_views_instance.get_amount.return_value = 150.0
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_called_once()
+            
+            saved_expense = sample_manager.save_expense.call_args[0][0]
+            
+            assert isinstance(saved_expense, Expense)
+            assert saved_expense.amount == 150.0
+            assert saved_expense.name == mock_expense_dict['name']
+
+        def test_edit_expense_category_success(self, sample_manager, sample_expenses):
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+            mock_expense_dict['id'] = expense_id
+
+            sample_manager.load_expense_by_id = MagicMock(return_value=mock_expense_dict)
+            sample_manager.save_expense = MagicMock()
+            sample_manager.get_currency = MagicMock(return_value="Euro")
+            sample_manager.console = MagicMock()
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.return_value = '3'
+                mock_views_instance.get_category.return_value = 'Fuel'
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_called_once()
+            
+            saved_expense = sample_manager.save_expense.call_args[0][0]
+            
+            assert isinstance(saved_expense, Expense)
+            assert saved_expense.category == 'Fuel'
+            assert saved_expense.name == mock_expense_dict['name']
+
+    
+        def test_edit_expense_description_success(self, sample_manager, sample_expenses):
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+            mock_expense_dict['id'] = expense_id
+
+            sample_manager.load_expense_by_id = MagicMock(return_value=mock_expense_dict)
+            sample_manager.save_expense = MagicMock()
+            sample_manager.get_currency = MagicMock(return_value="Euro")
+            sample_manager.console = MagicMock()
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.side_effect = ['4', 'New description']
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_called_once()
+            
+            saved_expense = sample_manager.save_expense.call_args[0][0]
+            
+            assert isinstance(saved_expense, Expense)
+            assert saved_expense.description == 'New description'
+            assert saved_expense.name == mock_expense_dict['name']
+
+        def test_edit_expense_exit(self, sample_manager, sample_expenses):
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+            mock_expense_dict['id'] = expense_id
+
+            sample_manager.load_expense_by_id = MagicMock(return_value=mock_expense_dict)
+            sample_manager.save_expense = MagicMock()
+            sample_manager.console = MagicMock()
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.return_value = '5'
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_not_called()
+        def test_edit_expense_raises_error_when_wrong_option(self, sample_manager, sample_expenses) -> None:
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+            mock_expense_dict['id'] = expense_id
+
+            sample_manager.load_expense_by_id = MagicMock(return_value=mock_expense_dict)
+            sample_manager.save_expense = MagicMock()
+            sample_manager.console = MagicMock()
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.side_effect = ['9', '5']
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_not_called()
+            sample_manager.console.assert_called()
+
+        def test_edit_expense_exception_handling(self, sample_manager, sample_expenses):
+            expense_id = 1
+            mock_expense_dict = sample_expenses[0].to_dict()
+            mock_expense_dict['id'] = expense_id
+            
+            sample_manager.load_expense_by_id = MagicMock(side_effect=[
+                Exception("Database error"), 
+                mock_expense_dict
+            ])
+            
+            sample_manager.save_expense = MagicMock()
+            sample_manager.console = MagicMock()
+
+            with patch('src.views.Views') as MockViews:
+                mock_views_instance = MockViews.return_value
+                mock_views_instance.get_str.return_value = '5'
+
+                sample_manager.edit_expense(expense_id)
+
+            sample_manager.save_expense.assert_not_called()
+            sample_manager.console.assert_called()
     class TestDeleteExpense:
         def test_delete_expense_succes(self, sample_manager) -> None:
             expense_a = Expense('A', 100, Category.FOOD, 1, 'F').to_dict()
@@ -110,8 +257,6 @@ class TestDataManager:
                 sample_manager.delete_expense(5)
 
         def test_raises_error_when_no_expenses(self, sample_manager) -> None:
-            with open(sample_manager.path, 'r') as file:
-                expenses = json.load(file)
             with pytest.raises(ValueError, match='No expenses found'):
                 sample_manager.delete_expense(1)
  
@@ -219,7 +364,6 @@ class TestDataManager:
         def test_get_currency_returns_none_when_no_saved_currency(self, sample_manager) -> None:
             none = sample_manager.get_currency()
             assert none == None
-
     class TestGetAllIds:
         def test_get_all_ids_success(self, sample_manager) -> None:
             expense_a = Expense('A', 100, Category.FOOD, 1, '28-07-2026').to_dict()

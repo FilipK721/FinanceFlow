@@ -291,8 +291,6 @@ class DataManager:
         file_data = self.load_file()
         if 'currency' not in file_data:
             return None
-        elif not file_data['currency']:
-            return None
         else:
             currency = Currency(file_data['currency'])
             return currency

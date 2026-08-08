@@ -5,7 +5,7 @@ Launches interactive command-line interface (CLI) allowing users to enter/edit e
 set currency, and view financial analytics.
 """
 
-from src.models import Expense, assign_id, Category, Currency
+from src.models import Expense
 from src.data_manager import DataManager
 from src.views import Views
 from datetime import datetime
@@ -46,7 +46,7 @@ def main() -> None:
                         name = views.get_str('Enter the name of expense')
                         amount = views.get_amount(currency)
                         description = views.get_str('Enter description (Leave blank to skip)')
-                        id = assign_id()
+                        id = data_manager.assign_id()
                         category = views.get_category()
                         date_choice = views.confirm('Do you want to enter date? (n to set current date)')
                         

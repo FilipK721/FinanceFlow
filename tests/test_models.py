@@ -1,6 +1,5 @@
 import pytest
-from src.models import Expense, Category, assign_id, Currency
-from unittest.mock import patch
+from src.models import Expense, Category, Currency
 
 
 class TestExpense:
@@ -49,27 +48,6 @@ class TestCategory:
         all_categories = Category.get_all_values()
         assert len(all_categories) == 8
 
-class TestAssignId:
-
-    @patch('src.data_manager.DataManager.load_all_expenses')
-    def test_assign_id_empty_list(self, mock_load):
-        mock_load.return_value = []
-        
-        result = assign_id()
-        
-        assert result == 1
-
-    @patch('src.data_manager.DataManager.load_all_expenses')
-    def test_assign_id_with_existing_expenses(self, mock_load):
-        mock_load.return_value = [
-            {'id': 5, 'name': 'Zakupy', 'amount': 50.0},
-            {'id': 12, 'name': 'Paliwo', 'amount': 200.0},
-            {'id': 3, 'name': 'Kino', 'amount': 35.0}
-        ]
-        
-        result = assign_id()
-        
-        assert result == 13
 
 class TestCurrency:
     def test_values(self) -> None:

@@ -132,26 +132,3 @@ f'date: {self.date}'
                 f'date: {self.date}'
             )
 
-
-def assign_id() -> int:
-    """
-    Calculates and returns the next unique ID for a new expense.
-
-    Reads existing expenses using DataManager, finds the highest current ID, and returns value + 1.
-
-    Returns:
-        int: New unique expense ID (starting from 1).
-    """
-    from src.data_manager import DataManager
-    data_manager = DataManager()
-    expenses = data_manager.load_all_expenses()
-
-    if not expenses:
-        return 1
-
-    max_id = 0
-    for expense in expenses:
-        if expense['id'] > max_id:
-            max_id = expense['id']
-
-    return max_id + 1

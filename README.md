@@ -31,7 +31,7 @@ The application allows users to manage expenses, set currency preferences, and a
 ### Clone repository
 
 ```bash
-git clone https://github.com/yourusername/FinanceFlow.git
+git clone https://github.com/FilipK721/FinanceFlow.git
 cd FinanceFlow
 ```
 

@@ -303,3 +303,25 @@ class DataManager:
         for expense in expenses:
             ids.append(expense['id'])
         return ids
+
+    def assign_id(self) -> int:
+        """
+        Calculates and returns the next unique ID for a new expense.
+
+        Reads existing expenses using DataManager, finds the highest current ID, and returns value + 1.
+
+        Returns:
+            int: New unique expense ID (starting from 1).
+        """
+
+        expenses = self.load_all_expenses()
+
+        if not expenses:
+            return 1
+
+        max_id = 0
+        for expense in expenses:
+            if expense['id'] > max_id:
+                max_id = expense['id']
+
+        return max_id + 1

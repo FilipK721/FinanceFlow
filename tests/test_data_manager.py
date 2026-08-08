@@ -379,3 +379,25 @@ class TestDataManager:
         def test_raises_error_due_to_no_expense(self, sample_manager) -> None:
             with pytest.raises(ValueError, match='No expenses found'):
                 sample_manager.get_all_ids()
+
+    class TestAssignId:
+
+        @patch('src.data_manager.DataManager.load_all_expenses')
+        def test_assign_id_empty_list(self, mock_load, sample_manager) -> None:
+            mock_load.return_value = []
+            
+            result = sample_manager.assign_id()
+            
+            assert result == 1
+
+        @patch('src.data_manager.DataManager.load_all_expenses')
+        def test_assign_id_with_existing_expenses(self, mock_load, sample_manager) -> None:
+            mock_load.return_value = [
+                {'id': 5, 'name': 'Zakupy', 'amount': 50.0},
+                {'id': 12, 'name': 'Paliwo', 'amount': 200.0},
+                {'id': 3, 'name': 'Kino', 'amount': 35.0}
+            ]
+            
+            result = sample_manager.assign_id()
+            
+            assert result == 13

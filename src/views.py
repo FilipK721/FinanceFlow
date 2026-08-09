@@ -53,19 +53,47 @@ class Views:
 
     def display_menu(self) -> None:
         menu_text = (
-            "[bold cyan]1.[/bold cyan] ➕ [white]Save expense[/white]\n"
-            "[bold cyan]2.[/bold cyan] 📜 [white]Show expenses[/white]\n"
-            "[bold cyan]3.[/bold cyan] ✏️  [white]Edit expense[/white]\n"
-            "[bold cyan]4.[/bold cyan] 💱 [white]Change currency[/white]\n"
-            "[bold cyan]5.[/bold cyan] ❌ [white]Delete expense[/white]\n"
-            "[bold cyan]6.[/bold cyan] 🚨 [white]Set monthly limit[/white]\n"
-            "[bold cyan]7.[/bold cyan] ↩️ [white]Delete monthly limit[/white]\n"
-            "[bold cyan]8.[/bold cyan] 📅 [white]Show all expenses from a given month[/white]\n"
-            "[bold cyan]9.[/bold cyan] 📊 [white]Get most common expense cateogry[/white]\n"
-            "[bold cyan]10.[/bold cyan] 📈 [white]Show month with the highest expenses[/white]\n"
-            "[bold red]11.[/bold red] 🔚 [white]Exit[/white]"
+            "\n[bold cyan]1.[/bold cyan] 💰 [white]Expenses[/white]\n\n"
+            "[bold cyan]2.[/bold cyan] 📊 [white]Analytics[/white]\n\n"
+            "[bold cyan]3.[/bold cyan] 🎯 [white]Budget[/white]\n\n"
+            "[bold cyan]4.[/bold cyan] ⚙️ [white] Settings[/white]\n"
+            "\n\n[bold red]0.[/bold red] 🔚 [white]Exit[/white]\n"
         )
-        self.console.print(Panel(menu_text, title='[bold green]💸 FinanceFlow Menu 💸[/bold green]'))
+        self.console.print(Panel(menu_text, title='[bold green]💸 FinanceFlow Menu[/bold green]'))
+
+    def display_expenses_menu(self) -> None:
+        menu_text = (
+            "\n[bold cyan]1.[/bold cyan] ➕ [white]Add expense[/white]\n\n"
+            "[bold cyan]2.[/bold cyan] 📜 [white]Show expenses[/white]\n\n"
+            "[bold cyan]3.[/bold cyan] ✏️ [white] Edit expense[/white]\n\n"
+            "[bold cyan]4.[/bold cyan] ❌ [white]Delete expense[/white]\n"
+            "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
+        )
+        self.console.print(Panel(menu_text, title='[bold blue]💰 Expenses Menu[/bold blue]'))
+
+    def display_analytics_menu(self) -> None:
+        menu_text = (
+            "\n[bold cyan]1.[/bold cyan] 📅 [white]Expenses by month[/white]\n\n"
+            "[bold cyan]2.[/bold cyan] 📊 [white]Most common category[/white]\n\n"
+            "[bold cyan]3.[/bold cyan] 📈 [white]Highest-spending month[/white]\n\n"
+            "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
+        )
+        self.console.print(Panel(menu_text, title='[bold blue]📊 Analytics[/bold blue]'))
+    
+    def display_budget_menu(self) -> None:
+        menu_text = (
+            "\n[bold cyan]1.[/bold cyan] 🚨 [white]Set monthly limit[/white]\n\n"
+            "[bold cyan]2.[/bold cyan] ↩️ [white]Delete monthly limit[/white]\n"
+            "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
+        )
+        self.console.print(Panel(menu_text, title='[bold blue]🎯 Budget[/bold blue]'))
+
+    def display_settings(self) -> None:
+        menu_text = (
+            "\n[bold cyan]1.[/bold cyan] 💱 [white]Change currency[/white]\n"
+            "\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
+        )
+        self.console.print(Panel(menu_text, title='[bold blue]⚙️ Settings[/bold blue]'))
 
     def _show_categories(self) -> None:
         self.console.print('[bold blue]Categories:[/bold blue]')

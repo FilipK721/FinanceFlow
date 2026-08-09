@@ -39,10 +39,17 @@ def main() -> None:
         while True:
             try:
                 views.display_menu()
-                option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+                if data_manager.get_limit():
+                    views.display_limit()
+                option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
 
                 match option:
                     case '1':
+                        if data_manager.get_limit():
+                            views.display_limit()
+                            if data_manager.percantage_of_the_limit() >= 100:
+                                break
+
                         name = views.get_str('Enter the name of expense')
                         amount = views.get_amount(currency)
                         description = views.get_str('Enter description (Leave blank to skip)')
@@ -72,9 +79,13 @@ def main() -> None:
                         console.print('[green]✅ Expense saved successfully![/green]')
                         
                     case '2':
+                        if data_manager.get_limit() != None:
+                            views.display_limit()
                         views.show_all_expenses(currency)
                         logger.info('Displayed all expenses')
                     case '3':
+                        if data_manager.get_limit() != None:
+                            views.display_limit()
                         views.show_all_expenses(currency)
                         ids = sorted(data_manager.get_all_ids())
                         str_ids = []
@@ -106,19 +117,36 @@ def main() -> None:
                             break
 
                     case '6':
+                        limit = views.get_limit(currency)
+                        data_manager.set_limit(limit)
+                        console.print(f'The limit is set to {limit}', style='bright_green')
+                        logger.info('User set limit: %s', limit)
+
+                    case '7':
+                        data_manager.delete_limit()
+                        console.print('Limit deleted successfully', style='bright_green')
+                        logger.info('User deleted limit')
+
+                    case '8':
+                        if data_manager.get_limit() != None:
+                            views.display_limit()
                         month_options = [str(option) for option in range(1, 13)]
                         month = views.get_int('Select month (1-12)', options=month_options, show_choices=False)
                         views.show_all_expenses_in_a_given_month(month, currency)
                         logger.info('Displayed expenses for month %s', month)
-                    case '7':
+                    case '9':
+                        if data_manager.get_limit() != None:
+                            views.display_limit()
                         console.print(f'The most common expense category: {data_manager.the_most_common_expense_category()}', style='bold blue')
                         logger.info('Displayed most common expense category')
-                    case '8':
+                    case '10':
+                        if data_manager.get_limit() != None:
+                            views.display_limit()
                         console.print(data_manager.month_with_the_highest_expenses(currency), style='bold blue')
                         logger.info('Displayed month with highest expenses')
 
-                    case '9':
-                        console.print('Goodbye!', style='green')
+                    case '11':
+                        console.print('Goodbye!', style='bright_green')
                         logger.info('Aplication closed by user')
                         sys.exit()
                     case _:

@@ -58,10 +58,12 @@ class Views:
             "[bold cyan]3.[/bold cyan] ✏️  [white]Edit expense[/white]\n"
             "[bold cyan]4.[/bold cyan] 💱 [white]Change currency[/white]\n"
             "[bold cyan]5.[/bold cyan] ❌ [white]Delete expense[/white]\n"
-            "[bold cyan]6.[/bold cyan] 📅 [white]Show all expenses from a given month[/white]\n"
-            "[bold cyan]7.[/bold cyan] 📊 [white]Get most common expense cateogry[/white]\n"
-            "[bold cyan]8.[/bold cyan] 📈 [white]Show month with the highest expenses[/white]\n"
-            "[bold red]9.[/bold red] 🔚 [white]Exit[/white]"
+            "[bold cyan]6.[/bold cyan] 🚨 [white]Set monthly limit[/white]\n"
+            "[bold cyan]7.[/bold cyan] ↩️ [white]Delete monthly limit[/white]\n"
+            "[bold cyan]8.[/bold cyan] 📅 [white]Show all expenses from a given month[/white]\n"
+            "[bold cyan]9.[/bold cyan] 📊 [white]Get most common expense cateogry[/white]\n"
+            "[bold cyan]10.[/bold cyan] 📈 [white]Show month with the highest expenses[/white]\n"
+            "[bold red]11.[/bold red] 🔚 [white]Exit[/white]"
         )
         self.console.print(Panel(menu_text, title='[bold green]💸 FinanceFlow Menu 💸[/bold green]'))
 
@@ -103,6 +105,9 @@ class Views:
         result = IntPrompt.ask(f'[bold dark_blue]{message}[/bold dark_blue]', choices=options, show_choices=show_choices)
         return result
 
+    def get_limit(self, currency: Currency) -> float:
+        return FloatPrompt.ask(f"[bold green]Enter the limit value ({currency})[/bold green]")
+
     def confirm(self, message: str) -> bool:
         result = Confirm.ask(
             f'[bold green]{message}[/bold green]'
@@ -141,3 +146,11 @@ class Views:
                 expense['date']
             )
         self.console.print(table)
+    def display_limit(self) -> None:
+        limit_percantage = self.data_manager.percantage_of_the_limit()
+        if 80 <= limit_percantage < 100:
+            self.console.print(f'The value of monthly expenses reaached {limit_percantage}% of limit!!', style='bold yellow')
+        elif limit_percantage >= 100:
+            self.console.print(f'The value of monthly expenses exceeded the limit ({limit_percantage}%)!!!', style='bold red')
+        else:
+            self.console.print(f'The value of monthly expenses amounts to {limit_percantage}%', style='bright_green')

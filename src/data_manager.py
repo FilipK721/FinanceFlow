@@ -9,6 +9,7 @@ import json
 import os
 from src.models import Expense, Category, Currency
 from rich.console import Console
+from datetime import datetime
 from config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 
@@ -241,7 +242,7 @@ class DataManager:
                     case _:
                         raise ValueError('Wrong option')
             except Exception as e:
-                self.console(f'❌Error: {e.args}', style='bold red')
+                self.console.print(f'❌Error: {e.args}', style='bold red')
                 logger.exception("Failed to edit expense (id=%s)", expense_id)
         
     def all_expenses_from_a_given_month(self, month: int) -> list[dict]:
@@ -291,9 +292,30 @@ class DataManager:
         file_data = self.load_file()
         if 'currency' not in file_data:
             return None
+        elif file_data['currency'] == None:
+            return None
         else:
             currency = Currency(file_data['currency'])
             return currency
+
+    def set_limit(self, limit: float) -> None:
+        file_data = self.load_file()
+        file_data['limit'] = limit
+        with open(self.path, 'w', encoding='utf-8') as file:
+            json.dump(file_data, file, indent=4)
+
+    def get_limit(self) -> float | None:
+        file_data = self.load_file()
+        return file_data.get('limit', None)
+
+    def delete_limit(self) -> None:
+        file_data = self.load_file()
+        if 'limit' in file_data:
+            del file_data['limit']
+            with open(self.path, 'w', encoding='utf-8') as file:
+                json.dump(file_data, file, indent=4)
+        else:
+            return
 
     def get_all_ids(self) -> list[int]:
         expenses = self.load_all_expenses()
@@ -303,6 +325,15 @@ class DataManager:
         for expense in expenses:
             ids.append(expense['id'])
         return ids
+
+    def percantage_of_the_limit(self) -> int:
+        current_month = datetime.today().month
+        all_expenses = self.all_expenses_from_a_given_month(current_month)
+        limit = self.get_limit()
+        total_amount = 0
+        for expense in all_expenses:
+            total_amount += expense['amount']
+        return int(total_amount / limit * 100)
 
     def assign_id(self) -> int:
         """

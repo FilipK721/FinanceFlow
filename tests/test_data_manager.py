@@ -204,7 +204,7 @@ class TestDataManager:
                 sample_manager.edit_expense(expense_id)
 
             sample_manager.save_expense.assert_not_called()
-            sample_manager.console.assert_called()
+            sample_manager.console.print.assert_called()
 
         def test_edit_expense_exception_handling(self, sample_manager, sample_expenses):
             expense_id = 1
@@ -226,7 +226,7 @@ class TestDataManager:
                 sample_manager.edit_expense(expense_id)
 
             sample_manager.save_expense.assert_not_called()
-            sample_manager.console.assert_called()
+            sample_manager.console.print.assert_called()
     class TestDeleteExpense:
         def test_delete_expense_succes(self, sample_manager) -> None:
             expense_a = Expense('A', 100, Category.FOOD, 1, 'F').to_dict()

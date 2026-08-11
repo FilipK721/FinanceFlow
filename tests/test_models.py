@@ -1,5 +1,5 @@
 import pytest
-from src.models import Expense, Category, Currency
+from financeflow.models import Expense, Category, Currency
 
 
 class TestExpense:

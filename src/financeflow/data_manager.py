@@ -7,10 +7,10 @@ and CRUD operations for expenses.
 
 import json
 import os
-from src.models import Expense, Category, Currency
+from financeflow.models import Expense, Category, Currency
 from rich.console import Console
 from datetime import datetime
-from config.logging import LoggerConfig
+from financeflow.config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 
 class DataManager:
@@ -28,7 +28,7 @@ class DataManager:
         Creates directory and empty JSON file if they do not exist.
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.path = os.path.join(current_dir, '..', 'data', 'expenses.json')
+        self.path = os.path.join(current_dir, '..', '..', 'data', 'expenses.json')
         self.path = os.path.abspath(self.path)
         self.console = Console()
         
@@ -194,7 +194,7 @@ class DataManager:
         Args:
             expense_id (int): ID of the expense to edit.
         """
-        from src.views import Views
+        from financeflow.views import Views
         self.views = Views()
         while True:
             try:

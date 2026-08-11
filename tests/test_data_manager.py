@@ -1,5 +1,5 @@
 import pytest
-from src.models import Expense, Category, Currency
+from financeflow.models import Expense, Category, Currency
 import os
 import json
 from unittest.mock import patch, MagicMock
@@ -85,7 +85,7 @@ class TestDataManager:
             sample_manager.get_currency = MagicMock(return_value="Euro")
             sample_manager.console = MagicMock() 
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.side_effect = ['1', 'New name']
 
@@ -107,7 +107,7 @@ class TestDataManager:
             sample_manager.get_currency = MagicMock(return_value="Euro")
             sample_manager.console = MagicMock()
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.return_value = '2'
                 mock_views_instance.get_amount.return_value = 150.0
@@ -132,7 +132,7 @@ class TestDataManager:
             sample_manager.get_currency = MagicMock(return_value="Euro")
             sample_manager.console = MagicMock()
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.return_value = '3'
                 mock_views_instance.get_category.return_value = 'Fuel'
@@ -158,7 +158,7 @@ class TestDataManager:
             sample_manager.get_currency = MagicMock(return_value="Euro")
             sample_manager.console = MagicMock()
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.side_effect = ['4', 'New description']
 
@@ -181,7 +181,7 @@ class TestDataManager:
             sample_manager.save_expense = MagicMock()
             sample_manager.console = MagicMock()
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.return_value = '5'
 
@@ -197,7 +197,7 @@ class TestDataManager:
             sample_manager.save_expense = MagicMock()
             sample_manager.console = MagicMock()
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.side_effect = ['9', '5']
 
@@ -219,7 +219,7 @@ class TestDataManager:
             sample_manager.save_expense = MagicMock()
             sample_manager.console = MagicMock()
 
-            with patch('src.views.Views') as MockViews:
+            with patch('financeflow.views.Views') as MockViews:
                 mock_views_instance = MockViews.return_value
                 mock_views_instance.get_str.return_value = '5'
 
@@ -382,7 +382,7 @@ class TestDataManager:
 
     class TestAssignId:
 
-        @patch('src.data_manager.DataManager.load_all_expenses')
+        @patch('financeflow.data_manager.DataManager.load_all_expenses')
         def test_assign_id_empty_list(self, mock_load, sample_manager) -> None:
             mock_load.return_value = []
             
@@ -390,7 +390,7 @@ class TestDataManager:
             
             assert result == 1
 
-        @patch('src.data_manager.DataManager.load_all_expenses')
+        @patch('financeflow.data_manager.DataManager.load_all_expenses')
         def test_assign_id_with_existing_expenses(self, mock_load, sample_manager) -> None:
             mock_load.return_value = [
                 {'id': 5, 'name': 'Zakupy', 'amount': 50.0},

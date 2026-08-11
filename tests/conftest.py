@@ -1,7 +1,7 @@
 from typing import Generator
 import os, pytest
-from src.models import Expense, Category
-from src.data_manager import DataManager
+from financeflow.models import Expense, Category
+from financeflow.data_manager import DataManager
 
 @pytest.fixture
 def sample_manager() -> Generator[DataManager]:

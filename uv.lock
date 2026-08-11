@@ -64,8 +64,8 @@ wheels = [
 
 [[package]]
 name = "financeflow"
-version = "0.4.0"
-source = { virtual = "." }
+version = "1.1.0"
+source = { editable = "." }
 dependencies = [
     { name = "colorlog" },
     { name = "rich" },

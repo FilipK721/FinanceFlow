@@ -5,13 +5,13 @@ Launches interactive command-line interface (CLI) allowing users to enter/edit e
 set currency, and view financial analytics.
 """
 
-from src.models import Expense, Currency
-from src.data_manager import DataManager
-from src.views import Views
+from financeflow.models import Expense, Currency
+from financeflow.data_manager import DataManager
+from financeflow.views import Views
 from datetime import datetime
 import sys
 from rich.console import Console
-from config.logging import LoggerConfig
+from financeflow.config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 
 def expenses_menu(views: Views, data_manager: DataManager, currency: Currency, console: Console) -> None:

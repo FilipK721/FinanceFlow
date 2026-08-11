@@ -44,5 +44,5 @@ uv sync
 ### Run application
 
 ```bash
-uv run python main.py
+uv run financeflow
 ```

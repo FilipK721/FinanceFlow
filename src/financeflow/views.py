@@ -1,5 +1,5 @@
-from src.data_manager import DataManager
-from src.models import Category, Currency
+from financeflow.data_manager import DataManager
+from financeflow.models import Category, Currency
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel

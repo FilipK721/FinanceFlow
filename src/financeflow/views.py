@@ -1,4 +1,7 @@
-from financeflow.data_manager import DataManager
+from financeflow.managers.data_manager import DataManager
+from financeflow.managers.expense_manager import ExpenseManager
+from financeflow.managers.analytics_manager import AnalyticsManager
+from financeflow.managers.budget_manager import BudgetManager
 from financeflow.models import Category, Currency
 from rich.console import Console
 from rich.table import Table
@@ -8,40 +11,43 @@ from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
 class Views:
     def __init__(self) -> None:
         self.data_manager = DataManager()
+        self.budget_manager = BudgetManager()
+        self.expense_manager = ExpenseManager()
+        self.analytics_manager = AnalyticsManager()
         self.console = Console()
 
     def show_all_expenses(self, currency: str) -> None:
-            """
-            Prints all saved expenses to the console.
-    
-            Args:
-                currency (str): Currency symbol/name displayed alongside amounts.
-    
-            Raises:
-                ValueError: If no expenses are found.
-            """
-            expenses = self.data_manager.load_all_expenses()
-            if not expenses:
-                raise ValueError('No expenses found!')
-            else:
-                table = Table(title=f'📊 Expenses ({currency})')
-                table.add_column("Name", style="bold")
-                table.add_column("Amount", justify="right", style="green")
-                table.add_column("Description")
-                table.add_column("Category", style="magenta")
-                table.add_column("Id", style="cyan", justify="center")
-                table.add_column("Date", justify="center")
-                sorted_expenses = sorted(expenses, key=lambda expense: expense['id'])
-                for expense in sorted_expenses:
-                    table.add_row(
-                        expense['name'],
-                        f"{expense['amount']:.2f}",
-                        expense["description"],
-                        expense['category'],
-                        str(expense['id']),
-                        expense['date']
-                    )
-                self.console.print(table)
+        """
+        Prints all saved expenses to the console.
+
+        Args:
+            currency (str): Currency symbol/name displayed alongside amounts.
+
+        Raises:
+            ValueError: If no expenses are found.
+        """
+        expenses = self.expense_manager.load_all_expenses()
+        if not expenses:
+            raise ValueError('No expenses found!')
+        else:
+            table = Table(title=f'📊 Expenses ({currency})')
+            table.add_column("Name", style="bold")
+            table.add_column("Amount", justify="right", style="green")
+            table.add_column("Description")
+            table.add_column("Category", style="magenta")
+            table.add_column("Id", style="cyan", justify="center")
+            table.add_column("Date", justify="center")
+            sorted_expenses = sorted(expenses, key=lambda expense: expense['id'])
+            for expense in sorted_expenses:
+                table.add_row(
+                    expense['name'],
+                    f"{expense['amount']:.2f}",
+                    expense["description"],
+                    expense['category'],
+                    str(expense['id']),
+                    expense['date']
+                )
+            self.console.print(table)
     def display_welcome_banner(self) -> None:
         self.console.clear()
 
@@ -152,7 +158,7 @@ class Views:
         return Currency(currency)
 
     def show_all_expenses_in_a_given_month(self, month: int, currency: Currency) -> None:
-        all_expenses_from_a_given_month = self.data_manager.all_expenses_from_a_given_month(month)
+        all_expenses_from_a_given_month = self.analytics_manager.all_expenses_from_a_given_month(month)
         if not all_expenses_from_a_given_month:
             self.console.print('No expenses in a given month found!', style='red')
             return
@@ -175,7 +181,7 @@ class Views:
             )
         self.console.print(table)
     def display_limit(self) -> None:
-        limit_percantage = self.data_manager.percantage_of_the_limit()
+        limit_percantage = self.budget_manager.percantage_of_the_limit()
         if 80 <= limit_percantage < 100:
             self.console.print(f'The value of monthly expenses reaached {limit_percantage}% of limit!!', style='bold yellow')
         elif limit_percantage >= 100:

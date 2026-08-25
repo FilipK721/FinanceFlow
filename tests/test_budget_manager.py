@@ -30,4 +30,8 @@ class TestBudgetManager:
             return_value=[{"amount": 125.0}, {"amount": 250.0}]
         )
 
-        assert sample_budget_manager.percantage_of_the_limit() == 75
+        assert sample_budget_manager.percentage_of_the_limit() == 75
+
+    def test_percentage_of_the_limit_returns_0(self, sample_budget_manager: BudgetManager) -> None:
+        sample_budget_manager.get_limit = MagicMock(return_value=None)
+        assert sample_budget_manager.percentage_of_the_limit() == 0

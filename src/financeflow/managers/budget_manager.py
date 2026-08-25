@@ -1,6 +1,6 @@
 from financeflow.managers.analytics_manager import AnalyticsManager
-from datetime import datetime
 import json
+from datetime import date
 
 class BudgetManager(AnalyticsManager):
     def set_limit(self, limit: float) -> None:
@@ -22,10 +22,12 @@ class BudgetManager(AnalyticsManager):
         else:
             return
     
-    def percantage_of_the_limit(self) -> int:
-        current_month = datetime.today().month
+    def percentage_of_the_limit(self) -> int:
+        current_month = date.today().month
         all_expenses = self.all_expenses_from_a_given_month(current_month)
         limit = self.get_limit()
+        if limit is None or limit == 0:
+            return 0
         total_amount = 0
         for expense in all_expenses:
             total_amount += expense['amount']

@@ -7,9 +7,8 @@ and CRUD operations for expenses.
 
 import json
 import os
-from financeflow.models import Expense, Category, Currency
+from financeflow.models import Currency
 from rich.console import Console
-from datetime import datetime
 from financeflow.config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
 

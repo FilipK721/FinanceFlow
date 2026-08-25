@@ -1,5 +1,5 @@
 import json
-from unittest.mock import mock_open, patch
+from unittest.mock import mock_open, patch, MagicMock
 
 from financeflow.managers.data_manager import DataManager
 from financeflow.models import Category, Currency, Expense
@@ -43,4 +43,8 @@ class TestDataManager:
         assert sample_manager.get_currency() == Currency.EURO
 
     def test_get_currency_returns_none_when_not_saved(self, sample_manager: DataManager) -> None:
+        assert sample_manager.get_currency() is None
+    
+    def test_get_currency_returns_none_when_currency_is_none_in_file(self, sample_manager: DataManager) -> None:
+        sample_manager.load_file = MagicMock(return_value={'currency': None})
         assert sample_manager.get_currency() is None

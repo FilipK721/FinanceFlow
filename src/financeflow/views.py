@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
+from datetime import date
 
 class Views:
     def __init__(self) -> None:
@@ -183,8 +184,14 @@ class Views:
     def display_limit(self) -> None:
         limit_percantage = self.budget_manager.percantage_of_the_limit()
         if 80 <= limit_percantage < 100:
-            self.console.print(f'The value of monthly expenses reaached {limit_percantage}% of limit!!', style='bold yellow')
+            self.console.print(f'The value of monthly expenses reached {limit_percantage}% of limit!!', style='bold yellow')
         elif limit_percantage >= 100:
             self.console.print(f'The value of monthly expenses exceeded the limit ({limit_percantage}%)!!!', style='bold red')
         else:
             self.console.print(f'The value of monthly expenses amounts to {limit_percantage}%', style='bright_green')
+
+    def get_date(self) -> date:
+        day = self.get_int('Enter day (1-31)', [str(i) for i in range(1, 32)], show_choices=False)
+        month = self.get_int('Enter month (1-12)', [str(i) for i in range(1, 13)], show_choices=False)
+        year = self.get_int('Enter year', show_choices=False)
+        return date(year, month, day).strftime('%d-%m-%Y')

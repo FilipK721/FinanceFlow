@@ -11,7 +11,7 @@ from financeflow.managers.expense_manager import ExpenseManager
 from financeflow.managers.budget_manager import BudgetManager
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.views import Views
-from datetime import datetime
+from datetime import date
 import sys
 from rich.console import Console
 from financeflow.config.logging import LoggerConfig
@@ -22,7 +22,7 @@ def expenses_menu(views: Views,
                   console: Console,
                   budget_manager: BudgetManager,
                   expense_manager: ExpenseManager) -> None:
-    while True:
+    while True:        
         views.display_expenses_menu()
         expense_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
         match expense_option:
@@ -40,17 +40,10 @@ def expenses_menu(views: Views,
                 date_choice = views.confirm('Do you want to enter date? (n to set current date)')
                 
                 if date_choice == True:
-                    year = views.get_int('Enter year')
-                    month_options = [str(option) for option in range(1, 13)]
-                    month = views.get_int('Enter month (1-12)', options=month_options, show_choices=False)
-                    day_options = [str(option) for option in range(1, 32)]
-                    day = views.get_int('Enter day (1-31', options=day_options, show_choices=False)
-                    date = datetime(year, month, day).strftime('%d-%m-%Y')
+                    expense_date = views.get_date()
                 elif date_choice == False:
-                    date = datetime.today().strftime('%d-%m-%Y')
-                else:
-                    raise ValueError('Wrong option! Type "y" or "n".')
-                expense = Expense(name, amount, category, id, date, description)
+                    expense_date = date.today().strftime('%d-%m-%Y')
+                expense = Expense(name, amount, category, id, expense_date, description)
                 expense_manager.save_expense(expense)
                 logger.info(
                             'Expense saved (id=%s, amount=%.2f, category=%s)',

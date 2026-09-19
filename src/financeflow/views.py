@@ -207,7 +207,7 @@ class Views:
             limit = self.budget_manager.get_category_limit(category)
             if limit is None or limit == 0:
                 continue
-            percentage = self.budget_manager.get_percentage_of_category_limit(category)
+            percentage = self.budget_manager.percentage_of_category_limit(category)
             if percentage >= 100:
                 lines.append(f'[bold red]{category}: {percentage}%[/bold red]')
             elif percentage >= 80:

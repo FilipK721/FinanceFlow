@@ -8,6 +8,7 @@ import financeflow.managers.data_manager as data_manager_module
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.managers.budget_manager import BudgetManager
 from financeflow.managers.expense_manager import ExpenseManager
+from financeflow.managers.export_manager import ExportManager
 
 @pytest.fixture
 def manager_factory(tmp_path: Path) -> Callable[[type[DataManager]], DataManager]:
@@ -46,6 +47,10 @@ def sample_analytics_manager(manager_factory: Callable[[type[DataManager]], Data
 @pytest.fixture
 def sample_budget_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> BudgetManager:
     return manager_factory(BudgetManager)  # type: ignore[return-value]
+
+@pytest.fixture
+def sample_export_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> ExportManager:
+    return manager_factory(ExportManager)  # type: ignore[return-value]
 
 @pytest.fixture
 def sample_expenses() -> list[Expense]:

@@ -151,9 +151,9 @@ def export_menu(views: Views, export_manager: ExportManager, console: Console) -
         
         match export_options:
             case '1':
-                export_manager.export_to_csv()
-                console.print(f'Exported expenses to csv file successfully', style='bold green')
-                logger.info('Exported expenses to csv file')
+                path = export_manager.export_to_csv()
+                console.print(f'Exported expenses to {path} successfully', style='bold green')
+                logger.info('Exported expenses to: %s', path)
             case '0':
                 console.print('Going back to menu', style='bold white')
                 break

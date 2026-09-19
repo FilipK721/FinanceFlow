@@ -21,8 +21,9 @@ class ExportManager(DataManager):
         if file_path is None:
             file_path = self.get_default_export_path()
         
-        with open(file_path, mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=['id', 'name', 'amount', 'category', 'description', 'id', 'date'])
+        with open(file_path, 'w', newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=['name', 'amount', 'category', 'description', 'id', 'date'])
             writer.writeheader()
             for expense in expenses:
                 writer.writerow(expense)
+        return file_path

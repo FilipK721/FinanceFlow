@@ -64,6 +64,7 @@ class Views:
             "[bold cyan]2.[/bold cyan] 📊 [white]Analytics[/white]\n\n"
             "[bold cyan]3.[/bold cyan] 🎯 [white]Budget[/white]\n\n"
             "[bold cyan]4.[/bold cyan] ⚙️ [white] Settings[/white]\n"
+            "\n[bold cyan]5.[/bold cyan] 📤 [white]Export[/white]\n"
             "\n\n[bold red]0.[/bold red] 🔚 [white]Exit[/white]\n"
         )
         self.console.print(Panel(menu_text, title='[bold green]💸 FinanceFlow Menu[/bold green]'))
@@ -101,6 +102,13 @@ class Views:
             "\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
         )
         self.console.print(Panel(menu_text, title='[bold blue]⚙️ Settings[/bold blue]'))
+    
+    def display_export_menu(self) -> None:
+        menu_text = (
+            '\n[bold cyan]1.[/bold cyan] 🧮 [white]Export to CSV file[/white]'
+            '\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n'
+        )
+        self.console.print(Panel(menu_text, title='[bold green]📤 Export[/bold green]'))
 
     def _show_categories(self) -> None:
         self.console.print('[bold blue]Categories:[/bold blue]')
@@ -182,13 +190,13 @@ class Views:
             )
         self.console.print(table)
     def display_limit(self) -> None:
-        limit_percantage = self.budget_manager.percantage_of_the_limit()
-        if 80 <= limit_percantage < 100:
-            self.console.print(f'The value of monthly expenses reached {limit_percantage}% of limit!!', style='bold yellow')
-        elif limit_percantage >= 100:
-            self.console.print(f'The value of monthly expenses exceeded the limit ({limit_percantage}%)!!!', style='bold red')
+        limit_percentage = self.budget_manager.percentage_of_the_limit()
+        if 80 <= limit_percentage < 100:
+            self.console.print(f'The value of monthly expenses reached {limit_percentage}% of limit!!', style='bold yellow')
+        elif limit_percentage >= 100:
+            self.console.print(f'The value of monthly expenses exceeded the limit ({limit_percentage}%)!!!', style='bold red')
         else:
-            self.console.print(f'The value of monthly expenses amounts to {limit_percantage}%', style='bright_green')
+            self.console.print(f'The value of monthly expenses amounts to {limit_percentage}%', style='bright_green')
 
     def get_date(self) -> date:
         day = self.get_int('Enter day (1-31)', [str(i) for i in range(1, 32)], show_choices=False)

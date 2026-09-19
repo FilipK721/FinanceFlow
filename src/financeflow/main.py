@@ -10,9 +10,11 @@ from financeflow.managers.data_manager import DataManager
 from financeflow.managers.expense_manager import ExpenseManager
 from financeflow.managers.budget_manager import BudgetManager
 from financeflow.managers.analytics_manager import AnalyticsManager
+from financeflow.managers.export_manager import ExportManager
 from financeflow.views import Views
 from datetime import date
 import sys
+import os
 from rich.console import Console
 from financeflow.config.logging import LoggerConfig
 logger = LoggerConfig.get_file_logger(__name__)
@@ -29,7 +31,7 @@ def expenses_menu(views: Views,
             case '1':
                 if budget_manager.get_limit():
                     views.display_limit()
-                    if budget_manager.percantage_of_the_limit() >= 100:
+                    if budget_manager.percentage_of_the_limit() >= 100:
                         break
 
                 name = views.get_str('Enter the name of expense')
@@ -142,6 +144,20 @@ def budget_menu(views: Views,
                 console.print('Going back to menu', style='bold white')
                 break
 
+def export_menu(views: Views, export_manager: ExportManager, console: Console) -> None:
+    while True:
+        views.display_export_menu()
+        export_options = views.get_str('Enter option', ['1', '0'])
+        
+        match export_options:
+            case '1':
+                export_manager.export_to_csv()
+                console.print(f'Exported expenses to csv file successfully', style='bold green')
+                logger.info('Exported expenses to csv file')
+            case '0':
+                console.print('Going back to menu', style='bold white')
+                break
+
 def settings_menu(views: Views, data_manager: DataManager, console: Console) -> None:
     while True:
         views.display_settings()
@@ -173,6 +189,7 @@ def main() -> None:
     budget_manager = BudgetManager()
     expense_manager = ExpenseManager()
     analytics_manager = AnalyticsManager()
+    export_manager = ExportManager()
     while True:
         while currency is None:
             try:
@@ -188,7 +205,7 @@ def main() -> None:
                 views.display_menu()
                 if budget_manager.get_limit():
                     views.display_limit()
-                menu_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
+                menu_option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '0'])
 
                 match menu_option:
                     case '1':
@@ -205,6 +222,10 @@ def main() -> None:
                         currency = data_manager.get_currency()
                         if currency is None:
                             break
+                    
+                    case '5':
+                        export_menu(views, export_manager, console)
+                    
                     case '0':
                         console.print('Closing app...', style='bold dark_blue')
                         logger.info('Aplication closed by user')

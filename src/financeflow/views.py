@@ -1,17 +1,18 @@
 from financeflow.managers.data_manager import DataManager
 from financeflow.managers.expense_manager import ExpenseManager
 from financeflow.managers.analytics_manager import AnalyticsManager
-from financeflow.managers.budget_manager import BudgetManager
 from financeflow.models import Category, Currency
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich.columns import Columns
 from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
 from datetime import date
 
 class Views:
     def __init__(self) -> None:
         self.data_manager = DataManager()
+        from financeflow.managers.budget_manager import BudgetManager
         self.budget_manager = BudgetManager()
         self.expense_manager = ExpenseManager()
         self.analytics_manager = AnalyticsManager()
@@ -67,7 +68,13 @@ class Views:
             "\n[bold cyan]5.[/bold cyan] 📤 [white]Export[/white]\n"
             "\n\n[bold red]0.[/bold red] 🔚 [white]Exit[/white]\n"
         )
-        self.console.print(Panel(menu_text, title='[bold green]💸 FinanceFlow Menu[/bold green]'))
+        limits_text = self._build_limits_text()
+
+        grid = Table.grid(expand=True, padding=(0, 2))
+        grid.add_column(ratio=2)
+        grid.add_column(ratio=1)
+        grid.add_row(menu_text, limits_text)
+        self.console.print(Panel(grid, title='[bold green]💸 FinanceFlow Menu[/bold green]'))
 
     def display_expenses_menu(self) -> None:
         menu_text = (
@@ -91,7 +98,9 @@ class Views:
     def display_budget_menu(self) -> None:
         menu_text = (
             "\n[bold cyan]1.[/bold cyan] 🚨 [white]Set monthly limit[/white]\n\n"
-            "[bold cyan]2.[/bold cyan] ↩️ [white]Delete monthly limit[/white]\n"
+            "[bold cyan]2.[/bold cyan] ❌ [white]Delete monthly limit[/white]\n\n"
+            "[bold cyan]3.[/bold cyan] 📊 [white]Set category limit for[/white]\n\n"
+            "[bold cyan]4.[/bold cyan] ╳ [white]Delete category limit[/white]\n\n"
             "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
         )
         self.console.print(Panel(menu_text, title='[bold blue]🎯 Budget[/bold blue]'))
@@ -189,14 +198,38 @@ class Views:
                 expense['date']
             )
         self.console.print(table)
-    def display_limit(self) -> None:
-        limit_percentage = self.budget_manager.percentage_of_the_limit()
-        if 80 <= limit_percentage < 100:
-            self.console.print(f'The value of monthly expenses reached {limit_percentage}% of limit!!', style='bold yellow')
-        elif limit_percentage >= 100:
-            self.console.print(f'The value of monthly expenses exceeded the limit ({limit_percentage}%)!!!', style='bold red')
-        else:
-            self.console.print(f'The value of monthly expenses amounts to {limit_percentage}%', style='bright_green')
+    
+    def _build_limits_text(self) -> str:
+        lines = ['[bold blue]🎯 Limits[/bold blue]\n']
+
+        categories = Category.get_all_values()
+        for category in categories:
+            limit = self.budget_manager.get_category_limit(category)
+            if limit is None or limit == 0:
+                continue
+            percentage = self.budget_manager.get_percentage_of_category_limit(category)
+            if percentage >= 100:
+                lines.append(f'[bold red]{category}: {percentage}%[/bold red]')
+            elif percentage >= 80:
+                lines.append(f'[bold yellow]{category}: {percentage}%[/bold yellow]')
+            else:
+                lines.append(f'[green]{category}: {percentage}%[/green]')
+
+        monthly_percentage = self.budget_manager.percentage_of_the_limit()
+        limit = self.budget_manager.get_limit()
+        if limit is not None and limit != 0:
+            lines.append('')
+            if monthly_percentage >= 100:
+                lines.append(f'[bold red]Monthly: {monthly_percentage}%[/bold red]')
+            elif monthly_percentage >= 80:
+                lines.append(f'[bold yellow]Monthly: {monthly_percentage}%[/bold yellow]')
+            else:
+                lines.append(f'[green]Monthly: {monthly_percentage}%[/green]')
+
+        if len(lines) == 1:
+            lines.append('[dim]No limits set[/dim]')
+
+        return '\n'.join(lines)
 
     def get_date(self) -> date:
         day = self.get_int('Enter day (1-31)', [str(i) for i in range(1, 32)], show_choices=False)

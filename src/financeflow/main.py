@@ -29,10 +29,10 @@ def expenses_menu(views: Views,
         expense_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
         match expense_option:
             case '1':
-                if budget_manager.get_limit():
-                    views.display_limit()
-                    if budget_manager.percentage_of_the_limit() >= 100:
-                        break
+                if not budget_manager.make_limits_check():
+                    console.print('❌ You have exceeded one of your budget limits! Cannot add new expense.', style='bold red')
+                    logger.info('Expense blocked - budget limit exceeded')
+                    break
 
                 name = views.get_str('Enter the name of expense')
                 amount = views.get_amount(currency)
@@ -56,13 +56,9 @@ def expenses_menu(views: Views,
                 console.print('[green]✅ Expense saved successfully![/green]')
         
             case '2':
-                if budget_manager.get_limit():
-                    views.display_limit()
                 views.show_all_expenses(currency)
                 logger.info('Displayed all expenses')
             case '3':
-                if budget_manager.get_limit():
-                    views.display_limit()
                 views.show_all_expenses(currency)
                 ids = sorted(expense_manager.get_all_ids())
                 str_ids = [str(id) for id in ids]
@@ -98,22 +94,17 @@ def analytics_menu(views: Views,
         analytics_option = views.get_str('Enter option', ['1', '2', '3', '0'])
         match analytics_option:
             case '1':
-                if budget_manager.get_limit():
-                    views.display_limit()
+    
                 month_options = [str(option) for option in range(1, 13)]
                 month = views.get_int('Select month (1-12)', options=month_options, show_choices=False)
                 views.show_all_expenses_in_a_given_month(month, currency)
                 logger.info('Displayed expenses for month %s', month)
 
             case '2':
-                if budget_manager.get_limit():
-                    views.display_limit()
                 console.print(f'The most common expense category: {analytics_manager.the_most_common_expense_category()}', style='bold blue')
                 logger.info('Displayed most common expense category')
 
-            case '3':
-                if budget_manager.get_limit():
-                    views.display_limit()
+            case '3':                
                 console.print(analytics_manager.month_with_the_highest_expenses(currency), style='bold blue')
                 logger.info('Displayed month with highest expenses')
 
@@ -127,7 +118,7 @@ def budget_menu(views: Views,
                 budget_manager: BudgetManager) -> None:
     while True:
         views.display_budget_menu()
-        budget_option = views.get_str('Enter option', ['1', '2', '0'])
+        budget_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
         match budget_option:
             case '1':
                 limit = views.get_limit(currency)
@@ -139,6 +130,18 @@ def budget_menu(views: Views,
                 budget_manager.delete_limit()
                 console.print('Limit deleted successfully', style='bright_green')
                 logger.info('User deleted limit')
+            
+            case '3':
+                category = views.get_category()
+                limit = views.get_limit(currency)
+                budget_manager.set_limit_for_category(category, limit)
+                console.print(f'The {category} limit is set to {limit}', style='bright_green')
+                logger.info('User set %s limit: %s', category, limit)
+            
+            case '4':
+                category = views.get_category()
+                budget_manager.delete_category_limit(category)
+                logger.info('User deleted %s limit', category)
 
             case '0':
                 console.print('Going back to menu', style='bold white')
@@ -203,8 +206,7 @@ def main() -> None:
                 if not data_manager.get_currency():
                     break
                 views.display_menu()
-                if budget_manager.get_limit():
-                    views.display_limit()
+                
                 menu_option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '0'])
 
                 match menu_option:

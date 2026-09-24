@@ -231,8 +231,19 @@ class Views:
 
         return '\n'.join(lines)
 
-    def get_date(self) -> date:
-        day = self.get_int('Enter day (1-31)', [str(i) for i in range(1, 32)], show_choices=False)
-        month = self.get_int('Enter month (1-12)', [str(i) for i in range(1, 13)], show_choices=False)
-        year = self.get_int('Enter year', show_choices=False)
-        return date(year, month, day).strftime('%d-%m-%Y')
+    def get_date(self) -> str:
+        current_year = date.today().year
+
+        while True:
+            year = self.get_int('Enter year', show_choices=False)
+            if 1900 <= year <= current_year:
+                break
+            self.console.print(f'❌ Year must be between 1900 and {current_year}. Try again.', style='bold red')
+
+        while True:
+            day = self.get_int('Enter day (1-31)', [str(i) for i in range(1, 32)], show_choices=False)
+            month = self.get_int('Enter month (1-12)', [str(i) for i in range(1, 13)], show_choices=False)
+            try:
+                return date(year, month, day).strftime('%d-%m-%Y')
+            except ValueError:
+                self.console.print('❌ Invalid date (e.g. day doesn\'t exist in that month). Try again.', style='bold red')

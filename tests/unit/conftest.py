@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from financeflow.models import Expense, Category
@@ -9,6 +10,7 @@ from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.managers.budget_manager import BudgetManager
 from financeflow.managers.expense_manager import ExpenseManager
 from financeflow.managers.export_manager import ExportManager
+from financeflow.views import Views
 
 @pytest.fixture
 def manager_factory(tmp_path: Path) -> Callable[[type[DataManager]], DataManager]:
@@ -57,3 +59,7 @@ def sample_expenses() -> list[Expense]:
     return [Expense('Pizza', 40, Category.FOOD, 1, '07-08-2026', ''),
             Expense('Fuel', 100, Category.FUEL, 2, '07-07-2026', ''),
             Expense('Cinema', 10, Category.ENTERTAINMENT, 3, '07-02-2026', '')]
+
+@pytest.fixture
+def sample_views(manager_factory: Callable[[type], Views]) -> Views:
+    return manager_factory(Views)

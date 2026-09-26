@@ -1,7 +1,5 @@
 import json
-
 import pytest
-
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.models import Category, Currency, Expense
 
@@ -46,3 +44,13 @@ class TestAnalyticsManager:
     def test_highest_expenses_rejects_empty_data(self, sample_analytics_manager: AnalyticsManager) -> None:
         with pytest.raises(ValueError, match="No expenses found"):
             sample_analytics_manager.month_with_the_highest_expenses(Currency.EURO)
+
+    def test_spending_by_category_raises_value_error_when_no_expenses(self, sample_analytics_manager: AnalyticsManager) -> None:
+        with pytest.raises(ValueError, match="No expenses found"):
+            sample_analytics_manager.spending_by_category()
+    
+    def test_spending_by_category(self, sample_analytics_manager: AnalyticsManager, sample_dict_expenses: list[dict]) -> None:
+        with open(sample_analytics_manager.path, 'w') as file:
+            json.dump({'expenses': sample_dict_expenses}, file)
+        categories_and_expenses = sample_analytics_manager.spending_by_category()
+        assert categories_and_expenses == {'Health': 200.0, 'Other': 400.0}

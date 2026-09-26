@@ -91,7 +91,7 @@ def analytics_menu(views: Views,
                    analytics_manager: AnalyticsManager) -> None:
     while True:
         views.display_analytics_menu()
-        analytics_option = views.get_str('Enter option', ['1', '2', '3', '0'])
+        analytics_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
         match analytics_option:
             case '1':
     
@@ -108,6 +108,10 @@ def analytics_menu(views: Views,
                 console.print(analytics_manager.month_with_the_highest_expenses(currency), style='bold blue')
                 logger.info('Displayed month with highest expenses')
 
+            case '4':
+                views.show_category_bar_chart(currency)
+                logger.info('Displayed category bar chart')
+                
             case '0':
                 console.print('Going back to menu', style='bold white')
                 break

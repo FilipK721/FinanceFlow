@@ -5,9 +5,9 @@ from financeflow.models import Category, Currency
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.columns import Columns
 from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
 from datetime import date
+import plotext as plt
 
 class Views:
     def __init__(self) -> None:
@@ -89,8 +89,9 @@ class Views:
     def display_analytics_menu(self) -> None:
         menu_text = (
             "\n[bold cyan]1.[/bold cyan] 📅 [white]Expenses by month[/white]\n\n"
-            "[bold cyan]2.[/bold cyan] 📊 [white]Most common category[/white]\n\n"
+            "[bold cyan]2.[/bold cyan] 🍔 [white]Most common category[/white]\n\n"
             "[bold cyan]3.[/bold cyan] 📈 [white]Highest-spending month[/white]\n\n"
+            "[bold cyan]4.[/bold cyan] 📊 [white]Show category bar chart[/white]\n\n"
             "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
         )
         self.console.print(Panel(menu_text, title='[bold blue]📊 Analytics[/bold blue]'))
@@ -247,3 +248,16 @@ class Views:
                 return date(year, month, day).strftime('%d-%m-%Y')
             except ValueError:
                 self.console.print('❌ Invalid date (e.g. day doesn\'t exist in that month). Try again.', style='bold red')
+                
+                
+    def show_category_bar_chart(self, currency: Currency) -> None:
+        totals = self.analytics_manager.spending_by_category()
+
+        labels = list(totals.keys())
+        values = list(totals.values())
+
+        plt.clf()
+        plt.theme('dark')
+        plt.simple_bar(labels, values, width=80, title=f'💸 Spending by category ({currency})')
+        plt.show()
+        plt.clf()

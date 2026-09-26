@@ -63,3 +63,32 @@ def sample_expenses() -> list[Expense]:
 @pytest.fixture
 def sample_views(manager_factory: Callable[[type], Views]) -> Views:
     return manager_factory(Views)
+
+@pytest.fixture
+def sample_dict_expenses() -> list[dict]:
+    return [
+        {
+            "name": "Dentist",
+            "amount": 100.0,
+            "category": "Health",
+            "description": "",
+            "id": 3,
+            "date": "19-09-2026"
+        },
+        {
+            "name": "Doctor",
+            "amount": 100.0,
+            "category": "Health",
+            "description": "",
+            "id": 4,
+            "date": "19-09-2026"
+        },
+        {
+            "name": "Furniture",
+            "amount": 400.0,
+            "category": "Other",
+            "description": "",
+            "id": 5,
+            "date": "24-09-2026"
+        }
+    ]

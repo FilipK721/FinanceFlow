@@ -72,3 +72,14 @@ class AnalyticsManager(DataManager):
 
         most_common_string = max(set(categories), key=categories.count)
         return Category(most_common_string)
+    
+    def spending_by_category(self) -> dict[str, float]:
+        expenses = self.load_all_expenses()
+        if not expenses:
+            raise ValueError('No expenses found')
+        categories_and_expenses = {}
+        for expense in expenses:
+            amount = float(expense['amount'])
+            category = expense['category']
+            categories_and_expenses[category] = categories_and_expenses.get(category, 0.0) + amount
+        return categories_and_expenses

@@ -83,3 +83,22 @@ class AnalyticsManager(DataManager):
             category = expense['category']
             categories_and_expenses[category] = categories_and_expenses.get(category, 0.0) + amount
         return categories_and_expenses
+    
+    def spending_by_month(self) -> dict[str, float]:
+        expenses = self.load_all_expenses()
+        if not expenses:
+            raise ValueError('No expenses found')
+        monthly_totals = {}
+        for expense in expenses:
+            amount = float(expense['amount'])
+            date = expense['date'].split('-')
+            key = f'{date[1]}-{date[2]}'
+            monthly_totals[key] = monthly_totals.get(key, 0.0) + amount
+
+        def sort_key(month_year: str) -> tuple[int, int]:
+            month, year = month_year.split('-')
+            return (int(year), int(month))
+
+        sorted_keys = sorted(monthly_totals, key=sort_key)
+
+        return {key: monthly_totals[key] for key in sorted_keys}

@@ -54,3 +54,26 @@ class TestAnalyticsManager:
             json.dump({'expenses': sample_dict_expenses}, file)
         categories_and_expenses = sample_analytics_manager.spending_by_category()
         assert categories_and_expenses == {'Health': 200.0, 'Other': 400.0}
+    
+    def test_spending_by_month_raises_value_error_when_no_expenses(self, sample_analytics_manager: AnalyticsManager) -> None:
+        with pytest.raises(ValueError, match='No expenses found'):
+            sample_analytics_manager.spending_by_month()
+    
+    def test_spending_by_month(self, sample_analytics_manager: AnalyticsManager,) -> None:
+        expenses = [
+        Expense('A', 100, Category.FOOD, 1, '15-07-2026', '').to_dict(),
+        Expense('B', 50, Category.FUEL, 2, '01-02-2026', '').to_dict(),
+        Expense('C', 25, Category.FOOD, 3, '01-02-2025', '').to_dict(),
+        Expense('D', 10, Category.FOOD, 4, '20-07-2026', '').to_dict(),
+    ]
+        
+        with open(sample_analytics_manager.path, 'w') as file:
+            json.dump({'expenses': expenses}, file)
+        
+        monthly_totals = sample_analytics_manager.spending_by_month()
+        
+        assert list(monthly_totals.items()) == [
+        ('02-2025', 25.0),
+        ('02-2026', 50.0),
+        ('07-2026', 110.0),
+    ]

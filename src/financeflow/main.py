@@ -87,11 +87,10 @@ def expenses_menu(views: Views,
 def analytics_menu(views: Views,
                    currency: Currency,
                    console: Console,
-                   budget_manager: BudgetManager,
                    analytics_manager: AnalyticsManager) -> None:
     while True:
         views.display_analytics_menu()
-        analytics_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
+        analytics_option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '0'])
         match analytics_option:
             case '1':
     
@@ -111,6 +110,10 @@ def analytics_menu(views: Views,
             case '4':
                 views.show_category_bar_chart(currency)
                 logger.info('Displayed category bar chart')
+            
+            case '5':
+                views.show_monthly_trend_chart(currency)
+                logger.info('Displayed monthly trend bar chart')
                 
             case '0':
                 console.print('Going back to menu', style='bold white')
@@ -218,7 +221,7 @@ def main() -> None:
                         expenses_menu(views, currency, console, budget_manager, expense_manager)
         
                     case '2':
-                        analytics_menu(views, currency, console, budget_manager, analytics_manager)
+                        analytics_menu(views, currency, console, analytics_manager)
 
                     case '3':
                         budget_menu(views, currency, console, budget_manager)

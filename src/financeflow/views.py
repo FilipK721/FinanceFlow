@@ -92,6 +92,7 @@ class Views:
             "[bold cyan]2.[/bold cyan] 🍔 [white]Most common category[/white]\n\n"
             "[bold cyan]3.[/bold cyan] 📈 [white]Highest-spending month[/white]\n\n"
             "[bold cyan]4.[/bold cyan] 📊 [white]Show category bar chart[/white]\n\n"
+            "[bold cyan]5.[/bold cyan] 📉 [white]Show monthly trend chart[/white]\n\n"
             "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
         )
         self.console.print(Panel(menu_text, title='[bold blue]📊 Analytics[/bold blue]'))
@@ -259,5 +260,21 @@ class Views:
         plt.clf()
         plt.theme('dark')
         plt.simple_bar(labels, values, width=80, title=f'💸 Spending by category ({currency})')
+        plt.show()
+        plt.clf()
+    
+    def show_monthly_trend_chart(self, currency: Currency) -> None:
+        totals = self.analytics_manager.spending_by_month()
+        
+        months = list(totals.keys())
+        amounts = list(totals.values())
+        x_positions = list(range(1, len(months) + 1))
+        
+        plt.clf()
+        plt.theme('clear')
+        plt.plot(x_positions, amounts, marker='braille')
+        plt.xticks(x_positions, months)
+        plt.title(f'📈 Monthly spending trend ({currency})')
+        plt.plotsize(80, 20)
         plt.show()
         plt.clf()

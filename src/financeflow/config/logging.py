@@ -1,10 +1,14 @@
+"""Logging configuration utilities used across the FinanceFlow application."""
+
 from logging import DEBUG, Formatter, StreamHandler, Handler, getLogger, Logger
 from logging.handlers import RotatingFileHandler
 import colorlog
 import sys
 from pathlib import Path
 
+
 class FormatterConfig:
+    """Create consistent console and file log formatters."""
     @staticmethod
     def get_formatter() -> Formatter:
         """
@@ -131,6 +135,7 @@ class LoggerConfig:
 
     @staticmethod
     def _get_file_handler(formatter: Formatter) -> RotatingFileHandler:
+        """Create a rotating file handler for application logs."""
         log_file_path = Path('logs/app.log')
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
         file_handler = RotatingFileHandler(

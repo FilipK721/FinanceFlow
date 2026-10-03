@@ -24,7 +24,8 @@ def expenses_menu(views: Views,
                   console: Console,
                   budget_manager: BudgetManager,
                   expense_manager: ExpenseManager) -> None:
-    while True:        
+    """Run the expense-management submenu and handle user actions."""
+    while True:
         views.display_expenses_menu()
         expense_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
         match expense_option:
@@ -88,6 +89,7 @@ def analytics_menu(views: Views,
                    currency: Currency,
                    console: Console,
                    analytics_manager: AnalyticsManager) -> None:
+    """Run the analytics submenu and display spending summaries."""
     while True:
         views.display_analytics_menu()
         analytics_option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '0'])
@@ -123,6 +125,7 @@ def budget_menu(views: Views,
                 currency: Currency,
                 console: Console,
                 budget_manager: BudgetManager) -> None:
+    """Run the budget submenu and manage monthly/category limits."""
     while True:
         views.display_budget_menu()
         budget_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
@@ -155,6 +158,7 @@ def budget_menu(views: Views,
                 break
 
 def export_menu(views: Views, export_manager: ExportManager, console: Console) -> None:
+    """Run the CSV export submenu and write stored expenses to disk."""
     while True:
         views.display_export_menu()
         export_options = views.get_str('Enter option', ['1', '0'])
@@ -169,6 +173,7 @@ def export_menu(views: Views, export_manager: ExportManager, console: Console) -
                 break
 
 def settings_menu(views: Views, data_manager: DataManager, console: Console) -> None:
+    """Run the settings submenu and allow the currency to be reset."""
     while True:
         views.display_settings()
         settings_option = views.get_str('Enter option', ['1', '0'])
@@ -242,7 +247,7 @@ def main() -> None:
 
             except Exception as e:
                 logger.error('Unexpected application error')
-                console.print(f'❌ Unexpected error: {e}', style='bold red')
+                console.print(f'❌ Error: {e.args[0]}', style='bold red')
 
 if __name__ == '__main__':
     main()

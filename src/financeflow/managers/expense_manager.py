@@ -76,7 +76,7 @@ class ExpenseManager(DataManager):
                 expense = Expense(
                     expense_dict['name'],
                     expense_dict['amount'],
-                    expense_dict['category'],
+                    Category(expense_dict['category']),
                     expense_dict['id'],
                     expense_dict['date'],
                     expense_dict['description']

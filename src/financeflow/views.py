@@ -231,8 +231,7 @@ class Views:
         """Build a summary string showing current budget-limit usage."""
         lines = ['[bold blue]🎯 Limits[/bold blue]\n']
 
-        categories = Category.get_all_values()
-        for category in categories:
+        for category in Category:
             limit = self.budget_manager.get_category_limit(category)
             if limit is None or limit == 0:
                 continue

@@ -87,12 +87,10 @@ class BudgetManager(AnalyticsManager):
             True if all configured limits are still under their thresholds,
             otherwise False.
         """
-        categories = Category.get_all_values()
-
         if self.get_limit() is not None:
             if self.percentage_of_the_limit() >= 100:
                 return False
-        for category in categories:
+        for category in Category:
             if self.get_category_limit(category) is not None:
                 if self.percentage_of_category_limit(category) >= 100:
                     return False

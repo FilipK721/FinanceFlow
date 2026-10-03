@@ -1,42 +1,92 @@
+"""Budget-limit management for the FinanceFlow application."""
+
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.models import Category
-import json
+from financeflow.db.models import SettingRow, CategoryLimitRow
 from datetime import date
 
+
 class BudgetManager(AnalyticsManager):
+    """Manage overall and per-category budget limits and their usage percentages."""
+
     def set_limit(self, limit: float) -> None:
-        file_data = self.load_file()
-        file_data['limit'] = limit
-        with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(file_data, file, indent=4)
+        """Save the monthly overall spending limit.
 
-    def set_limit_for_category(self, category: Category, limit: float) -> None:
-        file_data = self.load_file()
-        category_limits = file_data.get('category_limits', {})
-        category_limits[category.value] = limit
-        file_data['category_limits'] = category_limits
-        with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(file_data, file, indent=4)
+        Args:
+            limit: Maximum allowed total spending for the current period.
+        """
+        existing = self.session.get(SettingRow, 'limit')
+        if existing:
+            existing.value = str(limit)
+        else:
+            new_limit = SettingRow(key='limit', value=str(limit))
+            self.session.add(new_limit)
 
-    def get_category_limit(self, category: Category) -> float | None:
-        file_data = self.load_file()
-        category_limits = file_data.get('category_limits', {})
-        return category_limits.get(category, None)
-
-    def delete_category_limit(self, category: Category) -> None:
-        file_data = self.load_file()
-        category_limits = file_data.get('category_limits', {})
-        if category in category_limits:
-            del category_limits[category]
-            file_data['category_limits'] = category_limits
-            with open(self.path, 'w', encoding='utf-8') as file:
-                json.dump(file_data, file, indent=4)
+        self.session.commit()
 
     def get_limit(self) -> float | None:
-        file_data = self.load_file()
-        return file_data.get('limit', None)
+        """Return the configured overall spending limit, if any."""
+        existing = self.session.get(SettingRow, 'limit')
+        if existing is not None:
+            return float(existing.value)
+        return None
+
+    def set_limit_for_category(self, category: Category, limit: float) -> None:
+        """Save a spending cap for a specific expense category.
+
+        Args:
+            category: The category for which the limit applies.
+            limit: Maximum allowed spending for that category.
+        """
+        existing = self.session.get(CategoryLimitRow, category.value)
+
+        if existing is not None:
+            existing.limit = limit
+        else:
+            new_limit = CategoryLimitRow(category=category.value, limit=limit)
+            self.session.add(new_limit)
+
+        self.session.commit()
+
+    def get_category_limit(self, category: Category) -> float | None:
+        """Return the spending limit configured for a given category.
+
+        Args:
+            category: Category to look up.
+
+        Returns:
+            The category limit as a float, or None if no limit is set.
+        """
+        existing = self.session.get(CategoryLimitRow, category.value)
+        if existing is None:
+            return None
+        return float(existing.limit)
+
+    def delete_category_limit(self, category: Category) -> None:
+        """Remove the limit configured for a specific category.
+
+        Args:
+            category: Category whose limit should be deleted.
+
+        Raises:
+            ValueError: If no limit exists for the given category.
+        """
+        existing = self.session.get(CategoryLimitRow, category.value)
+
+        if existing is not None:
+            self.session.delete(existing)
+        else:
+            raise ValueError(f'Limit for \'{category}\' not found')
+
+        self.session.commit()
 
     def make_limits_check(self) -> bool:
+        """Check whether spending has exceeded any configured limits.
+
+        Returns:
+            True if all configured limits are still under their thresholds,
+            otherwise False.
+        """
         categories = Category.get_all_values()
 
         if self.get_limit() is not None:
@@ -49,13 +99,26 @@ class BudgetManager(AnalyticsManager):
         return True
 
     def delete_limit(self) -> None:
-        file_data = self.load_file()
-        if 'limit' in file_data:
-            file_data['limit'] = None
-            with open(self.path, 'w', encoding='utf-8') as file:
-                json.dump(file_data, file, indent=4)
+        """Remove the global budget limit.
+
+        Raises:
+            ValueError: If no global limit is currently configured.
+        """
+        existing = self.session.get(SettingRow, 'limit')
+
+        if existing is not None:
+            self.session.delete(existing)
+        else:
+            raise ValueError('Limit not found')
+
+        self.session.commit()
 
     def percentage_of_the_limit(self) -> int:
+        """Calculate how much of the global limit has been used this month.
+
+        Returns:
+            Percentage of the configured total limit currently spent.
+        """
         current_month = date.today().month
         all_expenses = self.all_expenses_from_a_given_month(current_month)
         limit = self.get_limit()
@@ -65,6 +128,14 @@ class BudgetManager(AnalyticsManager):
         return int(total_amount / limit * 100)
 
     def percentage_of_category_limit(self, category: Category) -> int:
+        """Calculate how much of a category limit has been used this month.
+
+        Args:
+            category: The category to evaluate.
+
+        Returns:
+            Percentage of the configured category limit currently spent.
+        """
         current_month = date.today().month
         all_expenses = self.all_expenses_from_a_given_month(current_month)
         limit = self.get_category_limit(category)

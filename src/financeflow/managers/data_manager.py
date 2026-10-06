@@ -1,8 +1,9 @@
 """Persistence helpers for application settings and expense records."""
 
 from financeflow.models import Currency
-from financeflow.db.engine import SessionLocal, get_db_path
+from financeflow.db.engine import get_db_path, get_session_local
 from financeflow.db.models import SettingRow, ExpenseRow
+from sqlalchemy.orm import Session
 from rich.console import Console
 from financeflow.config.logging import LoggerConfig
 
@@ -12,9 +13,11 @@ logger = LoggerConfig.get_file_logger(__name__)
 class DataManager:
     """Manage database-backed settings and expense data for the application."""
 
-    def __init__(self) -> None:
-        """Create a database session and initialize runtime state used by the manager."""
-        self.session = SessionLocal()
+    def __init__(self, session: Session | None = None) -> None:
+        if session is None:
+            self.session = get_session_local()()
+        else:
+            self.session = session
         self.path = get_db_path()
         self.console = Console()
 

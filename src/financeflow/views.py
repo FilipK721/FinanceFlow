@@ -3,6 +3,7 @@
 from financeflow.managers.data_manager import DataManager
 from financeflow.managers.expense_manager import ExpenseManager
 from financeflow.managers.analytics_manager import AnalyticsManager
+from sqlalchemy.orm import Session
 from financeflow.models import Category, Currency
 from rich.console import Console
 from rich.table import Table
@@ -15,13 +16,13 @@ import plotext as plt
 class Views:
     """Render the interactive terminal UI and collect user input."""
 
-    def __init__(self) -> None:
+    def __init__(self, session: Session | None = None) -> None:
         """Initialize the CLI view layer and its supporting managers."""
-        self.data_manager = DataManager()
+        self.data_manager = DataManager(session=session)
         from financeflow.managers.budget_manager import BudgetManager
-        self.budget_manager = BudgetManager()
-        self.expense_manager = ExpenseManager()
-        self.analytics_manager = AnalyticsManager()
+        self.budget_manager = BudgetManager(session=self.data_manager.session)
+        self.expense_manager = ExpenseManager(session=self.data_manager.session)
+        self.analytics_manager = AnalyticsManager(session=self.data_manager.session)
         self.console = Console()
 
     def show_all_expenses(self, currency: str) -> None:

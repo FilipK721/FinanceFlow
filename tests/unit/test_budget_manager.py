@@ -1,9 +1,19 @@
+import pytest
 from unittest.mock import MagicMock
 from financeflow.models import Category
 from financeflow.managers.budget_manager import BudgetManager
+from financeflow.db.models import CategoryLimitRow, SettingRow
 
 
 class TestBudgetManager:
+    @pytest.fixture(autouse=True)
+    def clear_budget_limits(self, sample_budget_manager: BudgetManager) -> None:
+        """Keep tests independent despite the shared SQLAlchemy test session."""
+        session = sample_budget_manager.session
+        session.query(SettingRow).filter_by(key='limit').delete()
+        session.query(CategoryLimitRow).delete()
+        session.commit()
+
     def test_set_and_get_limit(self, sample_budget_manager: BudgetManager) -> None:
         sample_budget_manager.set_limit(1000.0)
 
@@ -19,10 +29,9 @@ class TestBudgetManager:
 
         assert sample_budget_manager.get_limit() is None
 
-    def test_delete_limit_when_not_set_is_a_none(self, sample_budget_manager: BudgetManager) -> None:
-        sample_budget_manager.delete_limit()
-
-        assert sample_budget_manager.get_limit() is None
+    def test_delete_limit_when_not_set_raises_value_error(self, sample_budget_manager: BudgetManager) -> None:
+        with pytest.raises(ValueError, match='Limit not found'):
+            sample_budget_manager.delete_limit()
 
     def test_percentage_of_limit(self, sample_budget_manager: BudgetManager) -> None:
         sample_budget_manager.set_limit(500.0)

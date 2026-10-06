@@ -1,11 +1,6 @@
-from collections.abc import Callable
-from pathlib import Path
-from unittest.mock import MagicMock
-
 import pytest
 from financeflow.models import Expense, Category
 from financeflow.managers.data_manager import DataManager
-import financeflow.managers.data_manager as data_manager_module
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.managers.budget_manager import BudgetManager
 from financeflow.managers.expense_manager import ExpenseManager
@@ -71,10 +66,6 @@ def sample_expenses() -> list[Expense]:
             Expense('Fuel', 100, Category.FUEL, 2, '07-07-2026', ''),
             Expense('Cinema', 10, Category.ENTERTAINMENT, 3, '07-02-2026', ''),
             Expense('Doctor', 200, Category.HEALTH, 4, '02-02-2026')]
-
-@pytest.fixture(scope="session")
-def sample_views(manager_factory: Callable[[type], Views]) -> Views:
-    return manager_factory(Views)
 
 @pytest.fixture(scope="session")
 def sample_dict_expenses() -> list[dict]:

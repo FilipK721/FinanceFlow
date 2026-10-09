@@ -1,5 +1,5 @@
 logs/
-data/expenses.json
+data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

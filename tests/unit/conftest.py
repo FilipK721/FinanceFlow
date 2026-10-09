@@ -1,70 +1,73 @@
-from collections.abc import Callable
-from pathlib import Path
-from unittest.mock import MagicMock
-
 import pytest
 from financeflow.models import Expense, Category
 from financeflow.managers.data_manager import DataManager
-import financeflow.managers.data_manager as data_manager_module
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.managers.budget_manager import BudgetManager
 from financeflow.managers.expense_manager import ExpenseManager
 from financeflow.managers.export_manager import ExportManager
+from sqlalchemy.orm import Session, sessionmaker
+from financeflow.db.models import ExpenseRow
+from sqlalchemy import create_engine
+from financeflow.db.models import Base
 from financeflow.views import Views
+from typing import Generator
 
-@pytest.fixture
-def manager_factory(tmp_path: Path) -> Callable[[type[DataManager]], DataManager]:
-    # Mirror the production ``src/financeflow/managers`` layout so DataManager's
-    # relative storage path resolves inside this test's temporary directory.
-    fake_file = tmp_path / "src" / "financeflow" / "managers" / "data_manager.py"
-    fake_file.parent.mkdir(parents=True)
-    fake_file.touch()
+@pytest.fixture(scope="session", autouse=True)
+def global_setup(sample_expenses: list[Expense], sample_manager: DataManager) -> Generator[None, None, None]:
+    for expense in sample_expenses:
+        new_row = ExpenseRow(
+            id=expense.id,
+            name=expense.name,
+            amount=expense.amount,
+            category=expense.category.value,
+            date=expense.date,
+            description=expense.description
+        )
+        sample_manager.session.add(new_row)
+    sample_manager.session.commit()
+    
+    yield
 
-    def create(manager_class: type[DataManager]) -> DataManager:
-        original_file = data_manager_module.__file__
-        data_manager_module.__file__ = str(fake_file)
-        try:
-            return manager_class()
-        finally:
-            data_manager_module.__file__ = original_file
+@pytest.fixture(scope="session")
+def test_session() -> Session:
+    engine = create_engine('sqlite:///:memory:')
+    Base.metadata.create_all(engine)
+    TestSessionLocal = sessionmaker(bind=engine)
+    return TestSessionLocal()
 
-    return create
+@pytest.fixture(scope="session")
+def sample_manager(test_session: Session) -> DataManager:
+    return DataManager(session=test_session)
 
+@pytest.fixture(scope="session")
+def sample_expense_manager(test_session: Session) -> ExpenseManager:
+    return ExpenseManager(session=test_session)
 
-@pytest.fixture
-def sample_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> DataManager:
-    return manager_factory(DataManager)
+@pytest.fixture(scope="session")
+def sample_analytics_manager(test_session: Session) -> AnalyticsManager:
+    return AnalyticsManager(session=test_session)
 
+@pytest.fixture(scope="session")
+def sample_budget_manager(test_session: Session) -> BudgetManager:
+    return BudgetManager(session=test_session)
 
-@pytest.fixture
-def sample_expense_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> ExpenseManager:
-    return manager_factory(ExpenseManager)  # type: ignore[return-value]
+@pytest.fixture(scope="session")
+def sample_export_manager(test_session: Session) -> ExportManager:
+    return ExportManager(session=test_session)
 
+@pytest.fixture(scope="session")
+def sample_views(test_session: Session) -> Views:
+    return Views(session=test_session)
 
-@pytest.fixture
-def sample_analytics_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> AnalyticsManager:
-    return manager_factory(AnalyticsManager)  # type: ignore[return-value]
-
-
-@pytest.fixture
-def sample_budget_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> BudgetManager:
-    return manager_factory(BudgetManager)  # type: ignore[return-value]
-
-@pytest.fixture
-def sample_export_manager(manager_factory: Callable[[type[DataManager]], DataManager]) -> ExportManager:
-    return manager_factory(ExportManager)  # type: ignore[return-value]
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_expenses() -> list[Expense]:
     return [Expense('Pizza', 40, Category.FOOD, 1, '07-08-2026', ''),
+            Expense('Burger', 50, Category.FOOD, 5, '07-03-2026', ''),
             Expense('Fuel', 100, Category.FUEL, 2, '07-07-2026', ''),
-            Expense('Cinema', 10, Category.ENTERTAINMENT, 3, '07-02-2026', '')]
+            Expense('Cinema', 10, Category.ENTERTAINMENT, 3, '07-02-2026', ''),
+            Expense('Doctor', 200, Category.HEALTH, 4, '02-02-2026')]
 
-@pytest.fixture
-def sample_views(manager_factory: Callable[[type], Views]) -> Views:
-    return manager_factory(Views)
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_dict_expenses() -> list[dict]:
     return [
         {

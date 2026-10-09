@@ -1,50 +1,68 @@
-import json
-from unittest.mock import mock_open, patch, MagicMock
+import pytest
+from sqlalchemy.orm import Session
 
+from financeflow.db.models import ExpenseRow, SettingRow
 from financeflow.managers.data_manager import DataManager
-from financeflow.models import Category, Currency, Expense
+from financeflow.models import Category, Currency
 
 
 class TestDataManager:
-    def test_init(self) -> None:
-        with (
-            patch("financeflow.managers.data_manager.os.path.exists", return_value=False),
-            patch("financeflow.managers.data_manager.os.makedirs") as mock_makedirs,
-            patch("financeflow.managers.data_manager.open", mock_open()) as mock_file,
-        ):
-            manager = DataManager()
+    @pytest.fixture(autouse=True)
+    def clear_manager_data(self, sample_manager: DataManager) -> None:
+        """Isolate tests from data persisted by the shared database fixture."""
+        session = sample_manager.session
+        session.query(ExpenseRow).delete()
+        session.query(SettingRow).delete()
+        session.commit()
 
-        assert manager.path.endswith("data/expenses.json")
-        mock_makedirs.assert_called_once()
-        mock_file.assert_called_once_with(manager.path, "w", encoding="utf-8")
+    def test_init(self, test_session: Session) -> None:
+        manager = DataManager(session=test_session)
+
+        assert manager.session is test_session
+        assert manager.path.endswith("financeflow.db")
+        assert manager.console is not None
 
     def test_load_all_expenses(self, sample_manager: DataManager) -> None:
-        expenses = [Expense("A", 100, Category.FOOD, 1, "01-01-2026").to_dict()]
-        with open(sample_manager.path, "w", encoding="utf-8") as file:
-            json.dump({"expenses": expenses}, file)
+        sample_manager.session.add(
+            ExpenseRow(
+                id=1,
+                name="A",
+                amount=100,
+                category=Category.FOOD.value,
+                date="01-01-2026",
+                description="",
+            )
+        )
+        sample_manager.session.commit()
 
-        assert sample_manager.load_all_expenses() == expenses
+        assert sample_manager.load_all_expenses() == [
+            {
+                "name": "A",
+                "amount": 100.0,
+                "category": Category.FOOD.value,
+                "description": "",
+                "id": 1,
+                "date": "01-01-2026",
+            }
+        ]
 
-    def test_load_file(self, sample_manager: DataManager) -> None:
-        expenses = [Expense("A", 100, Category.FOOD, 1, "01-01-2026").to_dict()]
-        with open(sample_manager.path, "w", encoding="utf-8") as file:
-            json.dump({"expenses": expenses}, file)
-
-        assert sample_manager.load_file()["expenses"] == expenses
+    def test_load_all_expenses_returns_empty_list_when_no_expenses(
+        self,
+        sample_manager: DataManager,
+    ) -> None:
+        assert sample_manager.load_all_expenses() == []
 
     def test_set_currency(self, sample_manager: DataManager) -> None:
         sample_manager.set_currency(Currency.PLN)
 
-        assert sample_manager.load_file()["currency"] == Currency.PLN
-
-    def test_get_currency(self, sample_manager: DataManager) -> None:
-        sample_manager.set_currency(Currency.EURO)
-
-        assert sample_manager.get_currency() == Currency.EURO
+        assert sample_manager.get_currency() is Currency.PLN
 
     def test_get_currency_returns_none_when_not_saved(self, sample_manager: DataManager) -> None:
         assert sample_manager.get_currency() is None
-    
-    def test_get_currency_returns_none_when_currency_is_none_in_file(self, sample_manager: DataManager) -> None:
-        sample_manager.load_file = MagicMock(return_value={'currency': None})
+
+    def test_set_currency_none_removes_saved_currency(self, sample_manager: DataManager) -> None:
+        sample_manager.set_currency(Currency.EURO)
+
+        sample_manager.set_currency(None)
+
         assert sample_manager.get_currency() is None

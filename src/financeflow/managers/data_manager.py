@@ -1,96 +1,71 @@
-"""
-Data management and business logic module for FinanceFlow.
+"""Persistence helpers for application settings and expense records."""
 
-The DataManager class handles JSON read/write operations, analytical methods,
-and CRUD operations for expenses.
-"""
-
-import json
-import os
 from financeflow.models import Currency
+from financeflow.db.engine import get_db_path, get_session_local
+from financeflow.db.models import SettingRow, ExpenseRow
+from sqlalchemy.orm import Session
 from rich.console import Console
 from financeflow.config.logging import LoggerConfig
+
 logger = LoggerConfig.get_file_logger(__name__)
 
+
 class DataManager:
-    """
-    Manages persistent data storage, expense operations, and currency configurations.
+    """Manage database-backed settings and expense data for the application."""
 
-    Attributes:
-        path (str): Absolute file path to the JSON storage file (expenses.json).
-    """
-    def __init__(self) -> None:
-        """
-        Initializes the DataManager instance.
-
-        Sets absolute path to `data/expenses.json`.
-        Creates directory and empty JSON file if they do not exist.
-        """
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.path = os.path.join(current_dir, '..', '..', '..', 'data', 'expenses.json')
-        self.path = os.path.abspath(self.path)
+    def __init__(self, session: Session | None = None) -> None:
+        if session is None:
+            self.session = get_session_local()()
+        else:
+            self.session = session
+        self.path = get_db_path()
         self.console = Console()
-        
-        directory = os.path.dirname(self.path)
-        
-        if not os.path.exists(directory):
-            os.makedirs(directory)
 
-            logger.info("Created data directory: %s", directory)
-            
-        if not os.path.exists(self.path) or os.stat(self.path).st_size == 0:
-            with open(self.path, 'w', encoding='utf-8') as file:
-                json.dump({}, file, indent=4)
-                logger.info("Created new expenses storage file: %s", self.path)
-
-    
-    def load_file(self) -> dict[str, list[dict] | str]:
-        """
-        Loads raw structure of the entire JSON file.
-
-        Returns:
-            dict[str, list[dict] | str]: Root dictionary stored in the JSON file.
-        """
-
-        with open(self.path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
-
-    
     def set_currency(self, currency: Currency | None) -> None:
-        """
-        Saves default application currency to JSON configuration.
+        """Persist the selected currency or remove it when no currency is provided.
 
         Args:
-            currency (Currency | None): Currency enum instance or None to reset.
+            currency: The currency to store, or None to delete the saved setting.
         """
-        file_data = self.load_file()
-        file_data['currency'] = currency
-        with open(self.path, 'w', encoding='utf-8') as file:
-            json.dump(file_data, file, indent=4)
-    
-    def get_currency(self) -> Currency | None:
-        """
-        Reads configured default currency from JSON file.
+        existing = self.session.get(SettingRow, 'currency')
 
-        Returns:
-            Currency | None: Configured Currency object, or None if not set.
-        """
-        file_data = self.load_file()
-        if 'currency' not in file_data:
-            return None
-        elif file_data['currency'] == None:
-            return None
+        if currency is None:
+            if existing is not None:
+                self.session.delete(existing)
         else:
-            currency = Currency(file_data['currency'])
-            return currency
+            if existing is not None:
+                existing.value = currency.value
+
+            else:
+                new_setting = SettingRow(key='currency', value=currency.value)
+                self.session.add(new_setting)
+
+        self.session.commit()
+
+    def get_currency(self) -> Currency | None:
+        """Return the saved app currency if one has been configured."""
+        existing = self.session.get(SettingRow, 'currency')
+        if existing is not None:
+            return Currency(existing.value)
+        return None
 
     def load_all_expenses(self) -> list[dict]:
-        """
-        Loads and returns the list of all expense dictionaries stored in the file.
+        """Return all expense rows as dictionaries suitable for UI or API usage.
 
         Returns:
-            list[dict]: List of expense dictionaries.
+            A list of expense records containing the stored fields for each row.
         """
-        data = self.load_file()
-        return data.get('expenses', [])
+        rows = self.session.query(ExpenseRow).all()
+
+        expenses = []
+        for row in rows:
+            expenses.append({
+                'name': row.name,
+                'amount': row.amount,
+                'category': row.category,
+                'description': row.description,
+                'id': row.id,
+                'date': row.date
+            })
+
+        return expenses

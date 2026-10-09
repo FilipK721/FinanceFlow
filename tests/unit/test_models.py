@@ -7,16 +7,6 @@ class TestExpense:
         with pytest.raises(ValueError) as err:
             Expense('A', -5, Category.FUEL, 1, '')
 
-    def test_to_dict(self, sample_expenses) -> None:
-        dict_expense = sample_expenses[0].to_dict()
-
-        assert 'Pizza' == dict_expense['name']
-        assert 40 == dict_expense['amount']
-        assert Category.FOOD == dict_expense['category']
-        assert '' == dict_expense['description']
-        assert 1 == dict_expense['id']
-        assert '07-08-2026' == dict_expense['date']
-    
     def test_str(self, sample_expenses) -> None:
         expense = sample_expenses[0]
         str_expense = str(expense)

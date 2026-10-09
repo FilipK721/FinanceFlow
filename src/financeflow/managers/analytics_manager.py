@@ -1,7 +1,11 @@
+"""Analytics helpers for summarizing expense data by month and category."""
+
 from financeflow.managers.data_manager import DataManager
 from financeflow.models import Category
 
+
 class AnalyticsManager(DataManager):
+    """Compute monthly and category-level summaries from stored expense records."""
     def all_expenses_from_a_given_month(self, month: int) -> list[dict]:
         """
         Filters and returns Expense objects from a specific month.
@@ -44,14 +48,14 @@ class AnalyticsManager(DataManager):
         if not expenses:
             raise ValueError("No expenses found.")
             
-        monthly_totals = {}
+        monthly_totals: dict[str, float] = {}
         for exp in expenses:
             month_year = "-".join(exp['date'].split("-")[1:])
             amount = float(exp['amount'])
             monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
                 
             
-        highest_month = max(monthly_totals, key=monthly_totals.get)
+        highest_month = max(monthly_totals, key=lambda k: monthly_totals[k])
         return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]} {currency})'
 
     def the_most_common_expense_category(self) -> Category:
@@ -74,21 +78,23 @@ class AnalyticsManager(DataManager):
         return Category(most_common_string)
     
     def spending_by_category(self) -> dict[str, float]:
+        """Aggregate total spending for each expense category."""
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
-        categories_and_expenses = {}
+        categories_and_expenses: dict[str, float] = {}
         for expense in expenses:
             amount = float(expense['amount'])
             category = expense['category']
             categories_and_expenses[category] = categories_and_expenses.get(category, 0.0) + amount
         return categories_and_expenses
-    
+
     def spending_by_month(self) -> dict[str, float]:
+        """Aggregate total spending for each month, sorted by year and month."""
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
-        monthly_totals = {}
+        monthly_totals: dict[str, float] = {}
         for expense in expenses:
             amount = float(expense['amount'])
             date = expense['date'].split('-')
@@ -96,6 +102,7 @@ class AnalyticsManager(DataManager):
             monthly_totals[key] = monthly_totals.get(key, 0.0) + amount
 
         def sort_key(month_year: str) -> tuple[int, int]:
+            """Return a sortable tuple for month-year strings."""
             month, year = month_year.split('-')
             return (int(year), int(month))
 

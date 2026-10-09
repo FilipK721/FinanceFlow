@@ -96,7 +96,8 @@ class ExpenseManager(DataManager):
                         break
                     case '2':
                         currency = self.get_currency()
-                        new_amount = self.views.get_amount(currency)
+                        assert currency is not None
+                        new_amount = self.views.get_amount(currency) 
                         expense.amount = new_amount
                         self.save_expense(expense)
                         break
@@ -118,7 +119,7 @@ class ExpenseManager(DataManager):
                 self.console.print(f'❌Error: {e.args}', style='bold red')
                 logger.exception("Failed to edit expense (id=%s)", expense_id)
 
-    def load_expense_by_id(self, expense_id: int) -> dict[str, float | Category | int | str]:
+    def load_expense_by_id(self, expense_id: int) -> dict:
         """Return a single expense record in dictionary form.
 
         Args:

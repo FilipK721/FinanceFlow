@@ -223,12 +223,15 @@ def main() -> None:
 
                 match menu_option:
                     case '1':
+                        assert currency is not None
                         expenses_menu(views, currency, console, budget_manager, expense_manager)
         
                     case '2':
+                        assert currency is not None
                         analytics_menu(views, currency, console, analytics_manager)
 
                     case '3':
+                        assert currency is not None
                         budget_menu(views, currency, console, budget_manager)
 
                     case '4':

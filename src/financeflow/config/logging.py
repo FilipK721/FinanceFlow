@@ -61,6 +61,7 @@ class LoggerConfig:
         if formatter is None:
             FormatterConfig.get_colored_formatter()
 
+        assert formatter is not None
         stream_handler = LoggerConfig._get_stream_handler(formatter)
         return LoggerConfig._get_logger(name, level, [stream_handler])
 

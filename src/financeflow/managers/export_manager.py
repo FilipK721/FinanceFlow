@@ -18,7 +18,7 @@ class ExportManager(DataManager):
         filename = f'expenses_{datetime.now().strftime('%Y-%m-%d-%H:%M')}.csv'
         return os.path.join(export_dir, filename)
 
-    def export_to_csv(self, file_path: str | None = None) -> None:
+    def export_to_csv(self, file_path: str | None = None) -> str:
         """Export all expenses to a CSV file and return its path.
 
         Args:

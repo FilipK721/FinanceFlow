@@ -48,14 +48,14 @@ class AnalyticsManager(DataManager):
         if not expenses:
             raise ValueError("No expenses found.")
             
-        monthly_totals = {}
+        monthly_totals: dict[str, float] = {}
         for exp in expenses:
             month_year = "-".join(exp['date'].split("-")[1:])
             amount = float(exp['amount'])
             monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
                 
             
-        highest_month = max(monthly_totals, key=monthly_totals.get)
+        highest_month = max(monthly_totals, key=lambda k: monthly_totals[k])
         return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]} {currency})'
 
     def the_most_common_expense_category(self) -> Category:
@@ -82,7 +82,7 @@ class AnalyticsManager(DataManager):
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
-        categories_and_expenses = {}
+        categories_and_expenses: dict[str, float] = {}
         for expense in expenses:
             amount = float(expense['amount'])
             category = expense['category']
@@ -94,7 +94,7 @@ class AnalyticsManager(DataManager):
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
-        monthly_totals = {}
+        monthly_totals: dict[str, float] = {}
         for expense in expenses:
             amount = float(expense['amount'])
             date = expense['date'].split('-')

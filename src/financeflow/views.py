@@ -10,7 +10,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
 from datetime import date
-import plotext as plt
+import plotext as plt  # type: ignore[import-untyped]
 
 
 class Views:

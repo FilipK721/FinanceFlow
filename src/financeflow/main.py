@@ -42,9 +42,9 @@ def expenses_menu(views: Views,
                 category = views.get_category()
                 date_choice = views.confirm('Do you want to enter date? (n to set current date)')
                 
-                if date_choice == True:
+                if date_choice:
                     expense_date = views.get_date()
-                elif date_choice == False:
+                else:
                     expense_date = date.today().strftime('%d-%m-%Y')
                 expense = Expense(name, amount, category, id, expense_date, description)
                 expense_manager.save_expense(expense)

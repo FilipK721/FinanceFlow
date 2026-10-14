@@ -6,29 +6,32 @@ from financeflow.models import Category
 
 class AnalyticsManager(DataManager):
     """Compute monthly and category-level summaries from stored expense records."""
-    def all_expenses_from_a_given_month(self, month: int) -> list[dict]:
+    def all_expenses_from_a_given_month(self, month: int, year: int | None = None) -> list[dict]:
         """
-        Filters and returns Expense objects from a specific month.
+        Filters and returns expenses from a specific month.
 
         Args:
             month (int): Month number (1 to 12).
+            year (int | None): Year to match. If None, expenses from the
+                given month in any year are returned.
 
         Returns:
-            list[Expense]: List of Expense objects for the given month.
-
-        Raises:
-            ValueError: If no expenses exist for the specified month.
+            list[dict]: Expenses matching the given month (and year, if set).
         """
         all_expenses = self.load_all_expenses()
         given_month_expenses_dict = []
         
         for expense in all_expenses:
-            date = expense['date'].split('-')
-            expense_month = int(date[1]) 
+            _, expense_month, expense_year = expense['date'].split('-')
             
-            if expense_month == month:
-                given_month_expenses_dict.append(expense)
-                
+            if int(expense_month) != month:
+                continue 
+            
+            if year is not None and int(expense_year) != year:
+                continue
+            
+            given_month_expenses_dict.append(expense)
+            
         return given_month_expenses_dict
 
     def month_with_the_highest_expenses(self, currency: str) -> str:

@@ -117,8 +117,8 @@ class BudgetManager(AnalyticsManager):
         Returns:
             Percentage of the configured total limit currently spent.
         """
-        current_month = date.today().month
-        all_expenses = self.all_expenses_from_a_given_month(current_month)
+        today = date.today()
+        all_expenses = self.all_expenses_from_a_given_month(today.month, today.year)
         limit = self.get_limit()
         if limit is None or limit == 0:
             return 0
@@ -134,8 +134,8 @@ class BudgetManager(AnalyticsManager):
         Returns:
             Percentage of the configured category limit currently spent.
         """
-        current_month = date.today().month
-        all_expenses = self.all_expenses_from_a_given_month(current_month)
+        today = date.today()
+        all_expenses = self.all_expenses_from_a_given_month(today.month, today.year)
         limit = self.get_category_limit(category)
         if limit is None or limit == 0:
             return 0

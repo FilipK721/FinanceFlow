@@ -15,7 +15,7 @@ class TestExportManager:
         
         expected_dir = os.path.join(os.path.dirname(sample_export_manager.path), 'exports')
         mock_makedirs.assert_called_once_with(expected_dir, exist_ok=True)
-        assert result == os.path.join(expected_dir, 'expenses_2026-09-19-14:30.csv')
+        assert result == os.path.join(expected_dir, 'expenses_2026-09-19-14-30.csv')
     
     @patch('financeflow.managers.export_manager.datetime')
     def test_returns_path_inside_exports_directory(self, mock_datetime: MagicMock, sample_export_manager: ExportManager) -> None:

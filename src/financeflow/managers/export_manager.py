@@ -15,7 +15,7 @@ class ExportManager(DataManager):
         export_dir = os.path.join(data_dir, 'exports')
         os.makedirs(export_dir, exist_ok=True)
 
-        filename = f'expenses_{datetime.now().strftime('%Y-%m-%d-%H:%M')}.csv'
+        filename = f'expenses_{datetime.now().strftime('%Y-%m-%d-%H-%M')}.csv'
         return os.path.join(export_dir, filename)
 
     def export_to_csv(self, file_path: str | None = None) -> str:

@@ -137,6 +137,8 @@ FinanceFlow/
 ├── src/financeflow/
 │   ├── __init__.py
 │   ├── main.py                    # CLI entry point
+│   ├── cli.py                     # Application setup and top-level CLI loop
+│   ├── cli_menus.py               # CLI submenu handlers
 │   ├── models.py                  # Expense, Category, Currency (domain models)
 │   ├── views.py                   # Terminal UI (rich) and charts (plotext)
 │   ├── config/
@@ -155,6 +157,9 @@ FinanceFlow/
 │   ├── conftest.py                # In-memory DB session & manager fixtures
 │   ├── test_analytics_manager.py
 │   ├── test_budget_manager.py
+│   ├── test_cli.py
+│   ├── test_cli_menus.py
+│   ├── test_db_engine.py
 │   ├── test_data_manager.py
 │   ├── test_expense_manager.py
 │   ├── test_export_manager.py

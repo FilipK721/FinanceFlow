@@ -1,5 +1,6 @@
 import pytest
-from financeflow.models import Expense, Category
+from financeflow import cli
+from financeflow.models import Expense, Category, Currency
 from financeflow.managers.data_manager import DataManager
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.managers.budget_manager import BudgetManager
@@ -10,6 +11,7 @@ from financeflow.db.models import ExpenseRow
 from sqlalchemy import create_engine
 from financeflow.db.models import Base
 from financeflow.views import Views
+from unittest.mock import MagicMock
 from typing import Generator
 
 @pytest.fixture(scope="session", autouse=True)
@@ -95,3 +97,30 @@ def sample_dict_expenses() -> list[dict]:
             "date": "24-09-2026"
         }
     ]
+
+@pytest.fixture
+def cli_dependencies(monkeypatch: pytest.MonkeyPatch) -> tuple[MagicMock, MagicMock]:
+    views = MagicMock()
+    data_manager = MagicMock()
+    data_manager.get_currency.return_value = Currency.EURO
+    console = MagicMock()
+
+    monkeypatch.setattr(cli, 'Console', MagicMock(return_value=console))
+    monkeypatch.setattr(cli, 'Views', MagicMock(return_value=views))
+    monkeypatch.setattr(cli, 'DataManager', MagicMock(return_value=data_manager))
+    monkeypatch.setattr(cli, 'BudgetManager', MagicMock())
+    monkeypatch.setattr(cli, 'ExpenseManager', MagicMock())
+    monkeypatch.setattr(cli, 'AnalyticsManager', MagicMock())
+    monkeypatch.setattr(cli, 'ExportManager', MagicMock())
+
+    return views, data_manager
+
+
+@pytest.fixture
+def menu_dependencies() -> tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock]:
+    views = MagicMock()
+    console = MagicMock()
+    budget_manager = MagicMock()
+    expense_manager = MagicMock()
+    manager = MagicMock()
+    return views, console, budget_manager, expense_manager, manager

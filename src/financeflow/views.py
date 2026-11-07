@@ -53,7 +53,7 @@ class Views:
                     expense["description"],
                     expense['category'],
                     str(expense['id']),
-                    expense['date']
+                    expense['date'].strftime('%d-%m-%Y')
                 )
             self.console.print(table)
 
@@ -224,7 +224,7 @@ class Views:
                 expense["description"],
                 expense['category'],
                 str(expense['id']),
-                expense['date']
+                expense['date'].strftime('%d-%m-%Y')
             )
         self.console.print(table)
 

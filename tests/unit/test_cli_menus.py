@@ -79,7 +79,7 @@ def test_expenses_menu_edits_selected_expense(
     menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
 ) -> None:
     views, _, budget_manager, expense_manager, _ = menu_dependencies
-    views.get_str.side_effect = ['3', '0']
+    views.get_str.side_effect = ['4', '0']
     views.get_int.return_value = 7
     expense_manager.get_all_ids.return_value = [7, 2]
 
@@ -92,11 +92,41 @@ def test_expenses_menu_edits_selected_expense(
     expense_manager.edit_expense.assert_called_once_with(7)
 
 
+def test_expenses_menu_searches_and_displays_matching_expenses(
+    menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
+) -> None:
+    views, _, budget_manager, expense_manager, _ = menu_dependencies
+    criteria = {'text': 'coffee', 'sort_by': 'name', 'descending': False}
+    results = [{'name': 'Coffee', 'id': 1}]
+    views.get_str.side_effect = ['3', '0']
+    views.get_search_criteria.return_value = criteria
+    expense_manager.search_expenses.return_value = results
+
+    cli_menus.expenses_menu(views, Currency.EURO, MagicMock(), budget_manager, expense_manager)
+
+    expense_manager.search_expenses.assert_called_once_with(**criteria)
+    views.show_expenses_table.assert_called_once_with(results, Currency.EURO)
+
+
+def test_expenses_menu_reports_when_search_has_no_matches(
+    menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
+) -> None:
+    views, console, budget_manager, expense_manager, _ = menu_dependencies
+    views.get_str.side_effect = ['3', '0']
+    views.get_search_criteria.return_value = {'text': 'missing'}
+    expense_manager.search_expenses.return_value = []
+
+    cli_menus.expenses_menu(views, Currency.EURO, console, budget_manager, expense_manager)
+
+    console.print.assert_any_call('No expenses found!', style='red')
+    views.show_expenses_table.assert_not_called()
+
+
 def test_expenses_menu_deletes_confirmed_expense(
     menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
 ) -> None:
     views, console, budget_manager, expense_manager, _ = menu_dependencies
-    views.get_str.side_effect = ['4', '0']
+    views.get_str.side_effect = ['5', '0']
     views.confirm.return_value = True
     views.get_int.return_value = 3
     expense_manager.get_all_ids.return_value = [3]
@@ -111,7 +141,7 @@ def test_expenses_menu_returns_without_deleting_when_cancelled(
     menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
 ) -> None:
     views, console, budget_manager, expense_manager, _ = menu_dependencies
-    views.get_str.return_value = '4'
+    views.get_str.return_value = '5'
     views.confirm.return_value = False
 
     cli_menus.expenses_menu(views, Currency.EURO, console, budget_manager, expense_manager)

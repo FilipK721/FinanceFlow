@@ -125,6 +125,75 @@ class TestExpenseManager:
 
         assert sample_expense_manager.assign_id() == 13
 
+    def test_search_expenses_applies_filters_and_sorting(
+        self,
+        sample_expense_manager: ExpenseManager,
+    ) -> None:
+        expenses = [
+            Expense("Coffee", 5, Category.FOOD, 1, date(2026, 1, 2), "At work"),
+            Expense("Coffee", 3, Category.FOOD, 2, date(2026, 1, 4), "With a friend"),
+            Expense("Tea", 2, Category.FOOD, 3, date(2026, 1, 3)),
+            Expense("Coffee", 1, Category.FUEL, 4, date(2026, 1, 3)),
+            Expense("Breakfast", 6, Category.FOOD, 5, date(2026, 1, 3), "Coffee meeting"),
+            Expense("Coffee", 7, Category.FOOD, 6, date(2025, 12, 31)),
+        ]
+        self.add_expenses(sample_expense_manager, expenses)
+
+        results = sample_expense_manager.search_expenses(
+            text="coffee",
+            category=Category.FOOD,
+            date_from=date(2026, 1, 1),
+            date_to=date(2026, 1, 5),
+            sort_by="amount",
+            descending=False,
+        )
+
+        assert [expense["id"] for expense in results] == [2, 1, 5]
+        assert [expense["name"] for expense in results] == [
+            "Coffee",
+            "Coffee",
+            "Breakfast",
+        ]
+
+    def test_search_expenses_returns_empty_list_when_no_rows_match(
+        self,
+        sample_expense_manager: ExpenseManager,
+    ) -> None:
+        results = sample_expense_manager.search_expenses(text="not found")
+
+        assert results == []
+
+    @pytest.mark.parametrize(
+        ("sort_by", "descending", "expected_ids"),
+        [
+            ("date", False, [2, 3, 1]),
+            ("name", False, [2, 3, 1]),
+            ("category", True, [2, 3, 1]),
+        ],
+    )
+    def test_search_expenses_sorts_by_requested_column(
+        self,
+        sample_expense_manager: ExpenseManager,
+        sort_by: str,
+        descending: bool,
+        expected_ids: list[int],
+    ) -> None:
+        self.add_expenses(
+            sample_expense_manager,
+            [
+                Expense("Zulu", 10, Category.FOOD, 1, date(2026, 1, 3)),
+                Expense("Alpha", 20, Category.OTHER, 2, date(2026, 1, 1)),
+                Expense("Bravo", 30, Category.GROCERIES, 3, date(2026, 1, 2)),
+            ],
+        )
+
+        results = sample_expense_manager.search_expenses(
+            sort_by=sort_by,
+            descending=descending,
+        )
+
+        assert [expense["id"] for expense in results] == expected_ids
+
     @pytest.mark.parametrize(
         ("option", "new_value", "field", "expected"),
         [

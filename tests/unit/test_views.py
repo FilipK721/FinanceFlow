@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import patch
 from financeflow.views import Views
 from financeflow.models import Currency
@@ -10,16 +11,16 @@ class TestViews:
         def test_returns_formatted_date(self, sample_views: Views) -> None:
             with patch.object(sample_views, 'get_int', side_effect=[2026, 15, 6]):
                 result = sample_views.get_date()
-            assert result == '15-06-2026'
+            assert result == date(2026, 6, 15)
             
         def test_retries_when_year_out_of_range(self, sample_views: Views) -> None:
             with patch.object(sample_views, 'get_int', side_effect=[3000, 2026, 15, 6]):
                 result = sample_views.get_date()
-            assert result == '15-06-2026'
+            assert result == date(2026, 6, 15)
         def test_retries_when_day_month_combination_invalid(self, sample_views: Views) -> None:
             with patch.object(sample_views, 'get_int', side_effect=[2026, 31, 2, 22, 2]):
                 result = sample_views.get_date()
-            assert result == '22-02-2026'
+            assert result == date(2026, 2, 22)
     
     def test_show_all_expenses_raises_valueerror(self, sample_views: Views) -> None:
         sample_views.expense_manager.load_all_expenses = MagicMock(return_value=[])

@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,7 +16,7 @@ class TestExpenseManager:
         sample_expense_manager.session.commit()
 
     @staticmethod
-    def make_expense_dict(expense: Expense) -> dict[str, float | int | str]:
+    def make_expense_dict(expense: Expense) -> dict[str, float | int | str | date]:
         """Represent an expense as the database-backed manager returns it."""
         return {
             "name": expense.name,
@@ -43,24 +44,24 @@ class TestExpenseManager:
         manager.session.commit()
 
     def test_save_expense_inserts_record(self, sample_expense_manager: ExpenseManager) -> None:
-        expense = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        expense = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
 
         sample_expense_manager.save_expense(expense)
 
         assert sample_expense_manager.load_all_expenses() == [self.make_expense_dict(expense)]
 
     def test_save_expense_updates_existing_record(self, sample_expense_manager: ExpenseManager) -> None:
-        original = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        original = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
         sample_expense_manager.save_expense(original)
-        updated = Expense("Updated", 150, Category.FUEL, 1, "02-01-2026", "note")
+        updated = Expense("Updated", 150, Category.FUEL, 1, date(2026, 1, 2), "note")
 
         sample_expense_manager.save_expense(updated)
 
         assert sample_expense_manager.load_all_expenses() == [self.make_expense_dict(updated)]
 
     def test_delete_expense(self, sample_expense_manager: ExpenseManager) -> None:
-        first = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
-        second = Expense("B", 200, Category.FUEL, 2, "02-01-2026")
+        first = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
+        second = Expense("B", 200, Category.FUEL, 2, date(2026, 1, 2))
         self.add_expenses(sample_expense_manager, [first, second])
 
         sample_expense_manager.delete_expense(1)
@@ -74,14 +75,14 @@ class TestExpenseManager:
     def test_delete_expense_rejects_unknown_id(self, sample_expense_manager: ExpenseManager) -> None:
         self.add_expenses(
             sample_expense_manager,
-            [Expense("A", 100, Category.FOOD, 1, "01-01-2026")],
+            [Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))],
         )
 
         with pytest.raises(KeyError, match="Expense with id: 2 not found"):
             sample_expense_manager.delete_expense(2)
 
     def test_load_expense_by_id(self, sample_expense_manager: ExpenseManager) -> None:
-        expense = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        expense = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
         self.add_expenses(sample_expense_manager, [expense])
 
         assert sample_expense_manager.load_expense_by_id(1) == self.make_expense_dict(expense)
@@ -92,8 +93,8 @@ class TestExpenseManager:
 
     def test_get_all_ids(self, sample_expense_manager: ExpenseManager) -> None:
         expenses = [
-            Expense("A", 100, Category.FOOD, 1, "01-01-2026"),
-            Expense("B", 100, Category.FUEL, 3, "01-01-2026"),
+            Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1)),
+            Expense("B", 100, Category.FUEL, 3, date(2026, 1, 1)),
         ]
         self.add_expenses(sample_expense_manager, expenses)
 
@@ -116,9 +117,9 @@ class TestExpenseManager:
         self.add_expenses(
             sample_expense_manager,
             [
-                Expense("A", 100, Category.FOOD, 5, "01-01-2026"),
-                Expense("B", 100, Category.FUEL, 12, "01-01-2026"),
-                Expense("C", 100, Category.OTHER, 3, "01-01-2026"),
+                Expense("A", 100, Category.FOOD, 5, date(2026, 1, 1)),
+                Expense("B", 100, Category.FUEL, 12, date(2026, 1, 1)),
+                Expense("C", 100, Category.OTHER, 3, date(2026, 1, 1)),
             ],
         )
 
@@ -141,7 +142,7 @@ class TestExpenseManager:
         field: str,
         expected: object,
     ) -> None:
-        expense = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        expense = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
         sample_expense_manager.load_expense_by_id = MagicMock(
             return_value=self.make_expense_dict(expense)
         )
@@ -162,7 +163,7 @@ class TestExpenseManager:
         assert getattr(saved_expense, field) == expected
 
     def test_edit_expense_exit_does_not_save(self, sample_expense_manager: ExpenseManager) -> None:
-        expense = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        expense = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
         sample_expense_manager.load_expense_by_id = MagicMock(
             return_value=self.make_expense_dict(expense)
         )
@@ -176,7 +177,7 @@ class TestExpenseManager:
         sample_expense_manager.save_expense.assert_not_called()
 
     def test_edit_expense_handles_invalid_option(self, sample_expense_manager: ExpenseManager) -> None:
-        expense = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        expense = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
         sample_expense_manager.load_expense_by_id = MagicMock(
             return_value=self.make_expense_dict(expense)
         )
@@ -191,7 +192,7 @@ class TestExpenseManager:
         sample_expense_manager.console.print.assert_called()
 
     def test_edit_expense_handles_load_error(self, sample_expense_manager: ExpenseManager) -> None:
-        expense = Expense("A", 100, Category.FOOD, 1, "01-01-2026")
+        expense = Expense("A", 100, Category.FOOD, 1, date(2026, 1, 1))
         sample_expense_manager.load_expense_by_id = MagicMock(
             side_effect=[Exception("Database error"), self.make_expense_dict(expense)]
         )

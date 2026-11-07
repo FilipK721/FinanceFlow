@@ -1,3 +1,4 @@
+from datetime import date
 import pytest
 from financeflow import cli
 from financeflow.models import Expense, Category, Currency
@@ -63,11 +64,11 @@ def sample_views(test_session: Session) -> Views:
 
 @pytest.fixture(scope="session")
 def sample_expenses() -> list[Expense]:
-    return [Expense('Pizza', 40, Category.FOOD, 1, '07-08-2026', ''),
-            Expense('Burger', 50, Category.FOOD, 5, '07-03-2026', ''),
-            Expense('Fuel', 100, Category.FUEL, 2, '07-07-2026', ''),
-            Expense('Cinema', 10, Category.ENTERTAINMENT, 3, '07-02-2026', ''),
-            Expense('Doctor', 200, Category.HEALTH, 4, '02-02-2026')]
+    return [Expense('Pizza', 40, Category.FOOD, 1, date(2026, 8, 7), ''),
+            Expense('Burger', 50, Category.FOOD, 5, date(2026, 3, 7), ''),
+            Expense('Fuel', 100, Category.FUEL, 2, date(2026, 7, 7), ''),
+            Expense('Cinema', 10, Category.ENTERTAINMENT, 3, date(2026, 2, 7), ''),
+            Expense('Doctor', 200, Category.HEALTH, 4, date(2026, 2, 2))]
 
 @pytest.fixture(scope="session")
 def sample_dict_expenses() -> list[dict]:

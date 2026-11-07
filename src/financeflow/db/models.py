@@ -1,7 +1,7 @@
 """SQLAlchemy ORM models for persisting application data."""
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
+from datetime import date
 
 class Base(DeclarativeBase):
     """Base class for all FinanceFlow database models."""
@@ -15,7 +15,7 @@ class ExpenseRow(Base):
     name: Mapped[str]
     amount: Mapped[float]
     category: Mapped[str]
-    date: Mapped[str]
+    date: Mapped[date]
     description: Mapped[str] = mapped_column(default='')
 
 

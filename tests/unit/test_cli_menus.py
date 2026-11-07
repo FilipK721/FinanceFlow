@@ -28,7 +28,7 @@ def test_expenses_menu_adds_expense(
         Category.FOOD,
         12,
     )
-    assert expense.date == date.today().strftime('%d-%m-%Y')
+    assert expense.date == date.today()
     assert expense.description == 'Morning coffee'
 
 
@@ -55,12 +55,12 @@ def test_expenses_menu_saves_user_entered_date(
     views.get_amount.return_value = 18.0
     views.get_category.return_value = Category.FOOD
     views.confirm.return_value = True
-    views.get_date.return_value = '15-10-2026'
+    views.get_date.return_value = date(2026, 10, 15)
 
     cli_menus.expenses_menu(views, Currency.EURO, console, budget_manager, expense_manager)
 
     expense = expense_manager.save_expense.call_args.args[0]
-    assert expense.date == '15-10-2026'
+    assert expense.date == date(2026, 10, 15)
     views.get_date.assert_called_once()
 
 

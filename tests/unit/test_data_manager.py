@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from sqlalchemy.orm import Session
 
@@ -29,7 +31,7 @@ class TestDataManager:
                 name="A",
                 amount=100,
                 category=Category.FOOD.value,
-                date="01-01-2026",
+                date=date(2026, 1, 1),
                 description="",
             )
         )
@@ -42,7 +44,7 @@ class TestDataManager:
                 "category": Category.FOOD.value,
                 "description": "",
                 "id": 1,
-                "date": "01-01-2026",
+                "date": date(2026, 1, 1),
             }
         ]
 

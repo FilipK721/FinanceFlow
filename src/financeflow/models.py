@@ -5,6 +5,7 @@ This module defines the expense categories, supported currencies, and the
 """
 
 from enum import StrEnum
+from datetime import date
 
 
 class Category(StrEnum):
@@ -66,7 +67,7 @@ class Expense:
         amount: float,
         category: Category,
         id: int,
-        date: str,
+        date: date,
         description: str = ''
     ) -> None:
         """Initialize an expense.

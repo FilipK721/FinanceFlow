@@ -1,5 +1,7 @@
 """Analytics helpers for summarizing expense data by month and category."""
 
+from datetime import date
+
 from financeflow.managers.data_manager import DataManager
 from financeflow.models import Category
 
@@ -22,7 +24,12 @@ class AnalyticsManager(DataManager):
         given_month_expenses_dict = []
         
         for expense in all_expenses:
-            _, expense_month, expense_year = expense['date'].split('-')
+            expense_date = expense['date']
+            if isinstance(expense_date, date):
+                expense_month = expense_date.month
+                expense_year = expense_date.year
+            else:
+                _, expense_month, expense_year = expense_date.split('-')
             
             if int(expense_month) != month:
                 continue 
@@ -53,7 +60,11 @@ class AnalyticsManager(DataManager):
             
         monthly_totals: dict[str, float] = {}
         for exp in expenses:
-            month_year = "-".join(exp['date'].split("-")[1:])
+            expense_date = exp['date']
+            if isinstance(expense_date, date):
+                month_year = f'{expense_date.month:02d}-{expense_date.year}'
+            else:
+                month_year = "-".join(expense_date.split("-")[1:])
             amount = float(exp['amount'])
             monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
                 
@@ -100,8 +111,12 @@ class AnalyticsManager(DataManager):
         monthly_totals: dict[str, float] = {}
         for expense in expenses:
             amount = float(expense['amount'])
-            date = expense['date'].split('-')
-            key = f'{date[1]}-{date[2]}'
+            expense_date = expense['date']
+            if isinstance(expense_date, date):
+                key = f'{expense_date.month:02d}-{expense_date.year}'
+            else:
+                date_parts = expense_date.split('-')
+                key = f'{date_parts[1]}-{date_parts[2]}'
             monthly_totals[key] = monthly_totals.get(key, 0.0) + amount
 
         def sort_key(month_year: str) -> tuple[int, int]:

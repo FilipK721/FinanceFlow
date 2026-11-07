@@ -260,8 +260,8 @@ class Views:
 
         return '\n'.join(lines)
 
-    def get_date(self) -> str:
-        """Prompt the user for a valid date and return it as DD-MM-YYYY."""
+    def get_date(self) -> date:
+        """Prompt the user for a valid date and return it as a date object."""
         current_year = date.today().year
 
         while True:
@@ -274,7 +274,7 @@ class Views:
             day = self.get_int('Enter day (1-31)', [str(i) for i in range(1, 32)], show_choices=False)
             month = self.get_int('Enter month (1-12)', [str(i) for i in range(1, 13)], show_choices=False)
             try:
-                return date(year, month, day).strftime('%d-%m-%Y')
+                return date(year, month, day)
             except ValueError:
                 self.console.print('❌ Invalid date (e.g. day doesn\'t exist in that month). Try again.', style='bold red')
 

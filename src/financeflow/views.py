@@ -10,7 +10,19 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
 from datetime import date
+from typing import TypedDict
 import plotext as plt  # type: ignore[import-untyped]
+
+
+class SearchCriteria(TypedDict):
+    """Search and sort arguments accepted by ExpenseManager."""
+
+    text: str | None
+    category: Category | None
+    date_from: date | None
+    date_to: date | None
+    sort_by: str
+    descending: bool
 
 
 class Views:
@@ -24,38 +36,32 @@ class Views:
         self.expense_manager = ExpenseManager(session=self.data_manager.session)
         self.analytics_manager = AnalyticsManager(session=self.data_manager.session)
         self.console = Console()
+    
+    def show_expenses_table(self, expenses: list[dict], currency: Currency) -> None:
+        """Render the given expenses in a table, keeping their order."""
+        table = Table(title=f'📊 Expenses ({currency})')
+        table.add_column("Name", style="bold")
+        table.add_column("Amount", justify="right", style="green")
+        table.add_column("Description")
+        table.add_column("Category", style="magenta")
+        table.add_column("Id", style="cyan", justify="center")
+        table.add_column("Date", justify="center")
+        for expense in expenses:
+            table.add_row(
+                expense['name'],
+                f"{expense['amount']:.2f}",
+                expense['description'],
+                expense['category'],
+                str(expense['id']),
+                expense['date'].strftime('%d-%m-%Y'),
+            )
+        self.console.print(table)
 
-    def show_all_expenses(self, currency: str) -> None:
-        """Display every saved expense in a table.
-
-        Args:
-            currency: Currency label shown alongside the amounts.
-
-        Raises:
-            ValueError: If there are no stored expenses.
-        """
+    def show_all_expenses(self, currency: Currency) -> None:
         expenses = self.expense_manager.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found!')
-        else:
-            table = Table(title=f'📊 Expenses ({currency})')
-            table.add_column("Name", style="bold")
-            table.add_column("Amount", justify="right", style="green")
-            table.add_column("Description")
-            table.add_column("Category", style="magenta")
-            table.add_column("Id", style="cyan", justify="center")
-            table.add_column("Date", justify="center")
-            sorted_expenses = sorted(expenses, key=lambda expense: expense['id'])
-            for expense in sorted_expenses:
-                table.add_row(
-                    expense['name'],
-                    f"{expense['amount']:.2f}",
-                    expense["description"],
-                    expense['category'],
-                    str(expense['id']),
-                    expense['date'].strftime('%d-%m-%Y')
-                )
-            self.console.print(table)
+        self.show_expenses_table(sorted(expenses, key=lambda e: e['id']), currency)
 
     def display_welcome_banner(self) -> None:
         """Render the application's startup banner."""
@@ -90,8 +96,9 @@ class Views:
         menu_text = (
             "\n[bold cyan]1.[/bold cyan] ➕ [white]Add expense[/white]\n\n"
             "[bold cyan]2.[/bold cyan] 📜 [white]Show expenses[/white]\n\n"
-            "[bold cyan]3.[/bold cyan] ✏️ [white] Edit expense[/white]\n\n"
-            "[bold cyan]4.[/bold cyan] ❌ [white]Delete expense[/white]\n"
+            "[bold cyan]3.[/bold cyan] 🔎 [white]Search/Sort expenses[/white]\n\n"
+            "[bold cyan]4.[/bold cyan] ✏️ [white] Edit expense[/white]\n\n"
+            "[bold cyan]5.[/bold cyan] ❌ [white]Delete expense[/white]\n"
             "\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n"
         )
         self.console.print(Panel(menu_text, title='[bold blue]💰 Expenses Menu[/bold blue]'))
@@ -307,3 +314,38 @@ class Views:
         plt.plotsize(80, 20)
         plt.show()
         plt.clf()
+
+    def get_search_criteria(self) -> SearchCriteria:
+        """Ask for search filters and sorting; return kwargs for search_expenses."""
+        text = Prompt.ask(
+            '[bold magenta]Search text (Enter to skip)[/bold magenta]',
+            default='',
+            show_default=False,
+        ).strip()
+
+        category = self.get_category() if self.confirm('Filter by category?') else None
+        date_from = self.get_date() if self.confirm('Filter by start date?') else None
+        date_to = self.get_date() if self.confirm('Filter by end date?') else None
+
+        if date_from and date_to and date_from > date_to:
+            raise ValueError('Start date cannot be after end date')
+
+        sort_by = Prompt.ask(
+            '[bold magenta]Sort by[/bold magenta]',
+            choices=['date', 'amount', 'name', 'category'],
+            default='date',
+        )
+        order = Prompt.ask(
+            '[bold magenta]Order[/bold magenta]',
+            choices=['desc', 'asc'],
+            default='desc',
+        )
+
+        return {
+            'text': text or None,
+            'category': category,
+            'date_from': date_from,
+            'date_to': date_to,
+            'sort_by': sort_by,
+            'descending': order == 'desc',
+        }

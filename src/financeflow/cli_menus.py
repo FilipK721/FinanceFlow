@@ -26,7 +26,7 @@ def expenses_menu(
     """Run the expense-management submenu and handle user actions."""
     while True:
         views.display_expenses_menu()
-        expense_option = views.get_str('Enter option', ['1', '2', '3', '4', '0'])
+        expense_option = views.get_str('Enter option', ['1', '2', '3', '4', '5', '0'])
         match expense_option:
             case '1':
                 if not budget_manager.make_limits_check():
@@ -58,7 +58,16 @@ def expenses_menu(
             case '2':
                 views.show_all_expenses(currency)
                 logger.info('Displayed all expenses')
+            
             case '3':
+                criteria = views.get_search_criteria()
+                results = expense_manager.search_expenses(**criteria)
+                if not results:
+                    console.print('No expenses found!', style='red')
+                else:
+                    views.show_expenses_table(results, currency)
+            
+            case '4':
                 views.show_all_expenses(currency)
                 ids = sorted(expense_manager.get_all_ids())
                 str_ids = [str(expense_id) for expense_id in ids]
@@ -66,7 +75,7 @@ def expenses_menu(
                 expense_manager.edit_expense(expense_id)
                 logger.info('Expense edited (id=%s)', expense_id)
 
-            case '4':
+            case '5':
                 confirmed = views.confirm('Do you want to delete expense?')
                 if confirmed == True:
                     views.show_all_expenses(currency)

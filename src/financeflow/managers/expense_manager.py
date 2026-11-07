@@ -4,6 +4,8 @@ from financeflow.managers.data_manager import DataManager
 from financeflow.models import Expense, Category
 from financeflow.config import logging
 from financeflow.db.models import ExpenseRow
+from datetime import date
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -175,3 +177,47 @@ class ExpenseManager(DataManager):
                 max_id = expense['id']
 
         return max_id + 1
+    
+    def search_expenses(
+        self,
+        text: str | None = None,
+        category: Category | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        sort_by: str = 'date',
+        descending: bool = True
+    ) -> list[dict]:
+        columns = {
+            'date': ExpenseRow.date,
+            'amount': ExpenseRow.amount,
+            'name': ExpenseRow.name,
+            'category': ExpenseRow.category 
+        }
+        query = select(ExpenseRow)
+        if text:
+            pattern = f'%{text}%'
+            query = query.where(
+                ExpenseRow.name.ilike(pattern) | ExpenseRow.description.ilike(pattern)
+            )
+        
+        if category:
+            query = query.where(ExpenseRow.category == category.value)
+        
+        if date_from:
+            query = query.where(ExpenseRow.date >= date_from)
+        
+        if date_to:
+            query = query.where(ExpenseRow.date <= date_to)
+        
+        column = columns[sort_by]
+        query = query.order_by(column.desc() if descending else column.asc())
+        
+        rows = self.session.scalars(query).all()
+        
+        return [
+                {
+                    'name': r.name, 'amount': r.amount, 'category': r.category,
+                    'description': r.description, 'id': r.id, 'date': r.date,
+                }
+                for r in rows
+            ]

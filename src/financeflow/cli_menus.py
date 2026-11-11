@@ -48,9 +48,9 @@ def expenses_menu(
                 expense = Expense(name, amount, category, expense_id, expense_date, description)
                 expense_manager.save_expense(expense)
                 logger.info(
-                    'Expense saved (id=%s, amount=%.2f, category=%s)',
+                    'Expense saved (id=%s, amount=%s, category=%s)',
                     expense.id,
-                    expense.amount,
+                    currency.format_amount(expense.amount),
                     expense.category.value,
                 )
                 console.print('[green]✅ Expense saved successfully![/green]')
@@ -146,7 +146,10 @@ def budget_menu(
             case '1':
                 limit = views.get_limit(currency)
                 budget_manager.set_limit(limit)
-                console.print(f'The limit is set to {limit}', style='bright_green')
+                console.print(
+                    f'The limit is set to {currency.format_amount(limit)}',
+                    style='bright_green',
+                )
                 logger.info('User set limit: %s', limit)
 
             case '2':
@@ -158,7 +161,10 @@ def budget_menu(
                 category = views.get_category()
                 limit = views.get_limit(currency)
                 budget_manager.set_limit_for_category(category, limit)
-                console.print(f'The {category} limit is set to {limit}', style='bright_green')
+                console.print(
+                    f'The {category} limit is set to {currency.format_amount(limit)}',
+                    style='bright_green',
+                )
                 logger.info('User set %s limit: %s', category, limit)
 
             case '4':

@@ -41,7 +41,7 @@ class Views:
     
     def show_expenses_table(self, expenses: list[dict], currency: Currency) -> None:
         """Render the given expenses in a table, keeping their order."""
-        table = Table(title=f'📊 Expenses ({currency})')
+        table = Table(title=f'📊 Expenses ({currency.label})')
         table.add_column("Name", style="bold")
         table.add_column("Amount", justify="right", style="green")
         table.add_column("Description")
@@ -51,7 +51,7 @@ class Views:
         for expense in expenses:
             table.add_row(
                 expense['name'],
-                f"{expense['amount']:.2f}",
+                currency.format_amount(expense['amount']),
                 expense['description'],
                 expense['category'],
                 str(expense['id']),
@@ -177,7 +177,8 @@ class Views:
     def get_amount(self, currency: Currency) -> Decimal:
         """Prompt for an expense amount in the configured currency."""
         return self._get_decimal_amount(
-            f'[bold green]Enter the amount of expense ({currency})[/bold green]'
+            f'[bold green]Enter the amount of expense ({currency.label}, {currency.symbol})[/bold green]',
+            currency.decimal_places,
         )
 
     def get_str(self, message: str, options: list[str] | None = None, show_choices: bool = True) -> str:
@@ -193,15 +194,16 @@ class Views:
     def get_limit(self, currency: Currency) -> Decimal:
         """Prompt the user to input a budget limit value."""
         return self._get_decimal_amount(
-            f"[bold green]Enter the limit value ({currency})[/bold green]"
+            f"[bold green]Enter the limit value ({currency.label}, {currency.symbol})[/bold green]",
+            currency.decimal_places,
         )
 
-    def _get_decimal_amount(self, message: str) -> Decimal:
+    def _get_decimal_amount(self, message: str, decimal_places: int) -> Decimal:
         """Prompt until the user enters a valid monetary amount."""
         while True:
             raw_amount = Prompt.ask(message)
             try:
-                return decimal_amount(raw_amount)
+                return decimal_amount(raw_amount, decimal_places)
             except ValueError:
                 self.console.print('❌ Enter a valid amount.', style='bold red')
 
@@ -214,13 +216,13 @@ class Views:
 
     def get_currency_from_user(self) -> Currency:
         """Prompt the user to choose the default application currency."""
-        currencies = Currency.get_all_values()
+        currencies = Currency.get_all_labels()
         currency = Prompt.ask(
             '[bold dark_blue]Enter the currency[/bold dark_blue]',
             choices=currencies,
-            default='Euro'
+            default=Currency.EURO.label,
         )
-        return Currency(currency)
+        return Currency.from_label(currency)
 
     def show_all_expenses_in_a_given_month(self, month: int, currency: Currency) -> None:
         """Display all expenses recorded in a selected month."""
@@ -228,7 +230,7 @@ class Views:
         if not all_expenses_from_a_given_month:
             self.console.print('No expenses in a given month found!', style='red')
             return
-        table = Table(title=f'📊 Expenses ({currency})')
+        table = Table(title=f'📊 Expenses ({currency.label})')
         table.add_column("Name", style="bold")
         table.add_column("Amount", justify="right", style="green")
         table.add_column("Description")
@@ -239,7 +241,7 @@ class Views:
         for expense in sorted_expenses:
             table.add_row(
                 expense['name'],
-                f"{expense['amount']:.2f}",
+                currency.format_amount(expense['amount']),
                 expense["description"],
                 expense['category'],
                 str(expense['id']),
@@ -306,7 +308,12 @@ class Views:
 
         plt.clf()
         plt.theme('dark')
-        plt.simple_bar(labels, values, width=80, title=f'💸 Spending by category ({currency})')
+        plt.simple_bar(
+            labels,
+            values,
+            width=80,
+            title=f'💸 Spending by category ({currency.label})',
+        )
         plt.show()
         plt.clf()
 
@@ -322,7 +329,7 @@ class Views:
         plt.theme('clear')
         plt.plot(x_positions, amounts, marker='braille')
         plt.xticks(x_positions, months)
-        plt.title(f'📈 Monthly spending trend ({currency})')
+        plt.title(f'📈 Monthly spending trend ({currency.label})')
         plt.plotsize(80, 20)
         plt.show()
         plt.clf()

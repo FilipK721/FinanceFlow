@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from financeflow.managers.data_manager import DataManager
-from financeflow.models import Category
+from financeflow.models import Category, Currency
 from financeflow.money import decimal_amount
 
 
@@ -43,7 +43,7 @@ class AnalyticsManager(DataManager):
             
         return given_month_expenses_dict
 
-    def month_with_the_highest_expenses(self, currency: str) -> str:
+    def month_with_the_highest_expenses(self, currency: Currency) -> str:
         """
         Analyzes expense history and finds the month with the highest total spending.
 
@@ -74,7 +74,7 @@ class AnalyticsManager(DataManager):
         highest_month = max(monthly_totals, key=lambda k: monthly_totals[k])
         return (
             f'💰 month with the highest expenses: {highest_month} '
-            f'({monthly_totals[highest_month]:.2f} {currency})'
+            f'({currency.format_amount(monthly_totals[highest_month])})'
         )
 
     def the_most_common_expense_category(self) -> Category:

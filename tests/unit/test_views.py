@@ -17,6 +17,12 @@ class TestViews:
 
         assert amount == Decimal('1.01')
 
+    def test_get_amount_uses_yen_precision(self, sample_views: Views) -> None:
+        with patch('financeflow.views.Prompt.ask', return_value='123.5'):
+            amount = sample_views.get_amount(Currency.YEN)
+
+        assert amount == Decimal('124')
+
     class TestGetDate:
         def test_returns_formatted_date(self, sample_views: Views) -> None:
             with patch.object(sample_views, 'get_int', side_effect=[2026, 15, 6]):
@@ -62,10 +68,10 @@ class TestViews:
         with patch('financeflow.views.Table', return_value=table) as table_factory:
             sample_views.show_expenses_table(expenses, Currency.EURO)
 
-        table_factory.assert_called_once_with(title=f'📊 Expenses ({Currency.EURO})')
+        table_factory.assert_called_once_with(title='📊 Expenses (Euro)')
         assert table.add_row.call_args_list == [
-            (('Coffee', '4.50', 'Morning', 'Food', '8', '15-10-2026'),),
-            (('Tea', '2.00', '', 'Other', '3', '16-10-2026'),),
+            (('Coffee', '4.50 €', 'Morning', 'Food', '8', '15-10-2026'),),
+            (('Tea', '2.00 €', '', 'Other', '3', '16-10-2026'),),
         ]
         sample_views.console.print.assert_called_once_with(table)
 

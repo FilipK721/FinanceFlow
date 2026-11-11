@@ -1,15 +1,12 @@
 """Persistence helpers for application settings and expense records."""
 
-from decimal import Decimal
-
 from financeflow.models import Currency
 from financeflow.db.engine import get_db_path, get_session_local
 from financeflow.db.models import CategoryLimitRow, SettingRow, ExpenseRow
 from sqlalchemy.orm import Session
 from rich.console import Console
 from financeflow.config.logging import LoggerConfig
-from financeflow.currency_rates import get_exchange_rate
-from financeflow.money import decimal_amount
+from financeflow.managers.currency_conversion_manager import CurrencyConversionManager
 
 logger = LoggerConfig.get_file_logger(__name__)
 
@@ -22,6 +19,7 @@ class DataManager:
             self.session = get_session_local()()
         else:
             self.session = session
+        self.currency_conversion_manager = CurrencyConversionManager(self.session)
         self.path = get_db_path()
         self.console = Console()
 
@@ -46,8 +44,10 @@ class DataManager:
                     Currency(existing.value) if existing is not None else None
                 )
                 if previous_currency is not None and previous_currency != currency:
-                    rate = get_exchange_rate(previous_currency, currency)
-                    self._convert_financial_amounts(rate)
+                    self.currency_conversion_manager.convert_amounts(
+                        previous_currency,
+                        currency,
+                    )
                 elif previous_currency is None and self._has_financial_amounts():
                     raise ValueError(
                         'Cannot convert existing amounts because their currency is unknown'
@@ -71,24 +71,15 @@ class DataManager:
             or self.session.get(SettingRow, 'limit') is not None
         )
 
-    def _convert_financial_amounts(self, rate: Decimal) -> None:
-        """Convert stored expenses and budget limits using the supplied rate."""
-        for expense in self.session.query(ExpenseRow).all():
-            expense.amount = decimal_amount(expense.amount * rate)
-
-        for category_limit in self.session.query(CategoryLimitRow).all():
-            category_limit.limit = decimal_amount(category_limit.limit * rate)
-
-        monthly_limit = self.session.get(SettingRow, 'limit')
-        if monthly_limit is not None:
-            converted_limit = decimal_amount(Decimal(monthly_limit.value) * rate)
-            monthly_limit.value = str(converted_limit)
-
     def get_currency(self) -> Currency | None:
         """Return the saved app currency if one has been configured."""
         existing = self.session.get(SettingRow, 'currency')
         if existing is not None:
-            return Currency(existing.value)
+            currency = Currency(existing.value)
+            if existing.value != currency.value:
+                existing.value = currency.value
+                self.session.commit()
+            return currency
         return None
 
     def load_all_expenses(self) -> list[dict]:

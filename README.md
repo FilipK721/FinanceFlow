@@ -37,10 +37,11 @@
 - Files are saved with an automatic, date-stamped filename — or provide your own path
 
 ### ⚙️ Settings
-- Switch between currencies (Euro, Dollars, Pounds, Yen, Złoty); saved expenses and budget limits are converted using the latest online exchange rate
+- Switch between currencies (EUR €, USD $, GBP £, JPY ¥, PLN zł); saved expenses and budget limits are converted using the latest online exchange rate
+- Amount precision follows the selected currency (JPY uses whole yen)
 
 ### 🗂️ Under the hood
-- Persistent storage in a local **SQLite** database via **SQLAlchemy 2.0** — money is represented as `Decimal` and stored as integer minor units
+- Persistent storage in a local **SQLite** database via **SQLAlchemy 2.0** — money is represented as `Decimal` and stored in integer hundredths to avoid binary floating-point errors
 - Currency conversion uses the latest rate from the Frankfurter API when changing the configured currency
 - Database engine is created lazily (on first use), so importing the package never touches your data file
 - Managers accept an injectable database session, which keeps tests isolated (in-memory SQLite)
@@ -153,6 +154,7 @@ FinanceFlow/
 │   │   └── models.py              # Database tables (expenses, category limits, settings)
 │   └── managers/
 │       ├── data_manager.py        # Session handling, currency, loading expenses
+│       ├── currency_conversion_manager.py # Exchange-rate conversions
 │       ├── expense_manager.py     # Expense CRUD
 │       ├── analytics_manager.py   # Spending insights & chart data
 │       ├── budget_manager.py      # Limits & budget tracking
@@ -163,11 +165,14 @@ FinanceFlow/
 │   ├── test_budget_manager.py
 │   ├── test_cli.py
 │   ├── test_cli_menus.py
+│   ├── test_currency_conversion_manager.py
+│   ├── test_currency_rates.py
 │   ├── test_db_engine.py
 │   ├── test_data_manager.py
 │   ├── test_expense_manager.py
 │   ├── test_export_manager.py
 │   ├── test_models.py
+│   ├── test_money.py
 │   └── test_views.py
 ├── pyproject.toml
 ├── LICENSE

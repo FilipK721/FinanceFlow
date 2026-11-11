@@ -65,6 +65,17 @@ class TestDataManager:
     def test_get_currency_returns_none_when_not_saved(self, sample_manager: DataManager) -> None:
         assert sample_manager.get_currency() is None
 
+    def test_get_currency_migrates_legacy_display_name_to_iso_code(
+        self,
+        sample_manager: DataManager,
+    ) -> None:
+        legacy_setting = SettingRow(key='currency', value='Dollars')
+        sample_manager.session.add(legacy_setting)
+        sample_manager.session.commit()
+
+        assert sample_manager.get_currency() is Currency.DOLLARS
+        assert legacy_setting.value == 'USD'
+
     def test_set_currency_none_removes_saved_currency(self, sample_manager: DataManager) -> None:
         sample_manager.set_currency(Currency.EURO)
 
@@ -93,13 +104,15 @@ class TestDataManager:
         sample_manager.session.add(SettingRow(key='limit', value='500.00'))
         sample_manager.session.commit()
 
-        with patch(
-            'financeflow.managers.data_manager.get_exchange_rate',
+        get_rate = patch(
+            'financeflow.managers.currency_conversion_manager.get_exchange_rate',
             return_value=Decimal('1.234'),
-        ) as get_rate:
+        )
+        with get_rate as mock_rate:
+            sample_manager.currency_conversion_manager.rate_provider = mock_rate
             sample_manager.set_currency(Currency.DOLLARS)
 
-        get_rate.assert_called_once_with(Currency.EURO, Currency.DOLLARS)
+        mock_rate.assert_called_once_with(Currency.EURO, Currency.DOLLARS)
         assert sample_manager.get_currency() is Currency.DOLLARS
         assert sample_manager.session.get(ExpenseRow, 1).amount == Decimal('12.65')
         assert (
@@ -126,9 +139,10 @@ class TestDataManager:
         sample_manager.session.commit()
 
         with patch(
-            'financeflow.managers.data_manager.get_exchange_rate',
+            'financeflow.managers.currency_conversion_manager.get_exchange_rate',
             side_effect=RuntimeError('Rate service unavailable'),
-        ):
+        ) as mock_rate:
+            sample_manager.currency_conversion_manager.rate_provider = mock_rate
             with pytest.raises(RuntimeError, match='Rate service unavailable'):
                 sample_manager.set_currency(Currency.DOLLARS)
 

@@ -36,20 +36,78 @@ class Category(StrEnum):
 class Currency(StrEnum):
     """Enumeration of currencies supported by the application."""
 
-    EURO = 'Euro'
-    DOLLARS = 'Dollars'
-    POUNDS = 'Pounds'
-    YEN = 'Yen'
-    PLN = 'Zł'
+    EURO = 'EUR'
+    DOLLARS = 'USD'
+    POUNDS = 'GBP'
+    YEN = 'JPY'
+    PLN = 'PLN'
+
+    @property
+    def label(self) -> str:
+        """Return the human-readable currency name."""
+        return {
+            Currency.EURO: 'Euro',
+            Currency.DOLLARS: 'US Dollar',
+            Currency.POUNDS: 'British Pound',
+            Currency.YEN: 'Japanese Yen',
+            Currency.PLN: 'Polish Złoty',
+        }[self]
+
+    @property
+    def symbol(self) -> str:
+        """Return the common display symbol for this currency."""
+        return {
+            Currency.EURO: '€',
+            Currency.DOLLARS: '$',
+            Currency.POUNDS: '£',
+            Currency.YEN: '¥',
+            Currency.PLN: 'zł',
+        }[self]
+
+    @property
+    def decimal_places(self) -> int:
+        """Return the standard minor-unit precision for this currency."""
+        return 0 if self is Currency.YEN else 2
+
+    def format_amount(self, amount: Decimal | float | int | str) -> str:
+        """Format an amount using this currency's precision and symbol."""
+        normalized = decimal_amount(amount, self.decimal_places)
+        return f'{normalized:.{self.decimal_places}f} {self.symbol}'
 
     @classmethod
     def get_all_values(cls) -> list[str]:
-        """Return the string values of all supported currencies.
+        """Return ISO 4217 codes for supported currencies.
 
         Returns:
-            A list of currency names as strings.
+            A list of ISO currency codes.
         """
         return [item.value for item in cls]
+
+    @classmethod
+    def get_all_labels(cls) -> list[str]:
+        """Return human-readable names for supported currencies."""
+        return [item.label for item in cls]
+
+    @classmethod
+    def from_label(cls, label: str) -> Currency:
+        """Resolve a displayed currency name to its enum member."""
+        for currency in cls:
+            if currency.label == label:
+                return currency
+        return cls(label)
+
+    @classmethod
+    def _missing_(cls, value: object) -> Currency | None:
+        """Accept legacy database values while migrating to ISO codes."""
+        legacy_labels = {
+            'Euro': cls.EURO,
+            'Dollars': cls.DOLLARS,
+            'Pounds': cls.POUNDS,
+            'Yen': cls.YEN,
+            'Zł': cls.PLN,
+            'Zloty': cls.PLN,
+        }
+        return legacy_labels.get(value) if isinstance(value, str) else None
 
 
 class Expense:

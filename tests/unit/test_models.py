@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from financeflow.models import Expense, Category, Currency
 
 
@@ -41,10 +42,18 @@ class TestCategory:
 
 class TestCurrency:
     def test_values(self) -> None:
-            assert Currency.EURO == 'Euro'
-            assert Currency.DOLLARS == 'Dollars'
-            assert Currency.POUNDS == 'Pounds'
-            assert Currency.YEN == 'Yen'
-            assert Currency.PLN == 'Zł'
-            all_categories = Currency.get_all_values()
-            assert len(all_categories) == 5
+        assert Currency.EURO == 'EUR'
+        assert Currency.DOLLARS == 'USD'
+        assert Currency.POUNDS == 'GBP'
+        assert Currency.YEN == 'JPY'
+        assert Currency.PLN == 'PLN'
+        assert Currency.EURO.label == 'Euro'
+        assert Currency.EURO.symbol == '€'
+        assert Currency.PLN.label == 'Polish Złoty'
+        assert Currency.PLN.symbol == 'zł'
+        assert Currency.EURO.decimal_places == 2
+        assert Currency.YEN.decimal_places == 0
+        assert Currency.YEN.format_amount(Decimal('123.45')) == '123 ¥'
+        assert Currency.from_label('Euro') is Currency.EURO
+        assert Currency('Dollars') is Currency.DOLLARS
+        assert Currency.get_all_values() == ['EUR', 'USD', 'GBP', 'JPY', 'PLN']

@@ -7,22 +7,13 @@ from urllib.request import Request, urlopen
 
 from financeflow.models import Currency
 
-_CURRENCY_CODES = {
-    Currency.EURO: 'EUR',
-    Currency.DOLLARS: 'USD',
-    Currency.POUNDS: 'GBP',
-    Currency.YEN: 'JPY',
-    Currency.PLN: 'PLN',
-}
-
-
 def get_exchange_rate(base: Currency, quote: Currency) -> Decimal:
     """Return the latest rate for one supported currency unit to another."""
     if base == quote:
         return Decimal('1')
 
-    base_code = _CURRENCY_CODES[base]
-    quote_code = _CURRENCY_CODES[quote]
+    base_code = base.value
+    quote_code = quote.value
     url = (
         'https://api.frankfurter.dev/v1/latest'
         f'?base={base_code}&symbols={quote_code}'

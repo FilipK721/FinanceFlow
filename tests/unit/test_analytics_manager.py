@@ -35,7 +35,7 @@ class TestAnalyticsManager:
         monkeypatch.setattr(sample_analytics_manager, 'load_all_expenses', lambda: expenses)
 
         assert sample_analytics_manager.month_with_the_highest_expenses(Currency.EURO) == (
-            "💰 month with the highest expenses: 07-2026 (300.00 Euro)"
+            "💰 month with the highest expenses: 07-2026 (300.00 €)"
         )
 
     def test_highest_expenses_rejects_empty_data(

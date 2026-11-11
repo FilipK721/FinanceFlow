@@ -28,27 +28,24 @@ def test_run_cli_dispatches_each_menu_choice(
         handler.assert_called_once()
 
 
-def test_resetting_currency_returns_to_currency_prompt(
+def test_changing_currency_converts_and_persists_the_selection(
     cli_dependencies: tuple[MagicMock, MagicMock],
 ) -> None:
     views, data_manager = cli_dependencies
     data_manager.get_currency.side_effect = [
         Currency.EURO,
         Currency.EURO,
-        None,
-        Currency.EURO,
+        Currency.PLN,
+        Currency.PLN,
     ]
     views.get_str.side_effect = ['4', '1', '0']
-    views.get_currency_from_user.return_value = Currency.EURO
+    views.get_currency_from_user.return_value = Currency.PLN
 
     with pytest.raises(SystemExit):
         cli.run_cli()
 
     views.get_currency_from_user.assert_called_once()
-    assert data_manager.set_currency.call_args_list == [
-        ((None,),),
-        ((Currency.EURO,),),
-    ]
+    data_manager.set_currency.assert_called_once_with(Currency.PLN)
 
 
 def test_run_cli_retries_after_invalid_currency(

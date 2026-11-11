@@ -6,6 +6,9 @@ This module defines the expense categories, supported currencies, and the
 
 from enum import StrEnum
 from datetime import date
+from decimal import Decimal
+
+from financeflow.money import decimal_amount
 
 
 class Category(StrEnum):
@@ -64,7 +67,7 @@ class Expense:
     def __init__(
         self,
         name: str,
-        amount: float,
+        amount: Decimal | float | int | str,
         category: Category,
         id: int,
         date: date,
@@ -83,10 +86,11 @@ class Expense:
         Raises:
             ValueError: If the amount is negative.
         """
-        if amount < 0:
+        normalized_amount = decimal_amount(amount)
+        if normalized_amount < 0:
             raise ValueError('Amount cannot be negative')
         self.name = name
-        self.amount = amount
+        self.amount = normalized_amount
         self.category = category
         self.id = id
         self.date = date
@@ -114,4 +118,3 @@ class Expense:
             f'id: {self.id},\n'
             f'date: {self.date}'
         )
-

@@ -1,9 +1,11 @@
 """Analytics helpers for summarizing expense data by month and category."""
 
 from datetime import date
+from decimal import Decimal
 
 from financeflow.managers.data_manager import DataManager
 from financeflow.models import Category
+from financeflow.money import decimal_amount
 
 
 class AnalyticsManager(DataManager):
@@ -58,19 +60,22 @@ class AnalyticsManager(DataManager):
         if not expenses:
             raise ValueError("No expenses found.")
             
-        monthly_totals: dict[str, float] = {}
+        monthly_totals: dict[str, Decimal] = {}
         for exp in expenses:
             expense_date = exp['date']
             if isinstance(expense_date, date):
                 month_year = f'{expense_date.month:02d}-{expense_date.year}'
             else:
                 month_year = "-".join(expense_date.split("-")[1:])
-            amount = float(exp['amount'])
-            monthly_totals[month_year] = monthly_totals.get(month_year, 0.0) + amount
+            amount = decimal_amount(exp['amount'])
+            monthly_totals[month_year] = monthly_totals.get(month_year, Decimal('0')) + amount
                 
             
         highest_month = max(monthly_totals, key=lambda k: monthly_totals[k])
-        return f'💰 month with the highest expenses: {highest_month} ({monthly_totals[highest_month]} {currency})'
+        return (
+            f'💰 month with the highest expenses: {highest_month} '
+            f'({monthly_totals[highest_month]:.2f} {currency})'
+        )
 
     def the_most_common_expense_category(self) -> Category:
         """
@@ -91,33 +96,35 @@ class AnalyticsManager(DataManager):
         most_common_string = max(set(categories), key=categories.count)
         return Category(most_common_string)
     
-    def spending_by_category(self) -> dict[str, float]:
+    def spending_by_category(self) -> dict[str, Decimal]:
         """Aggregate total spending for each expense category."""
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
-        categories_and_expenses: dict[str, float] = {}
+        categories_and_expenses: dict[str, Decimal] = {}
         for expense in expenses:
-            amount = float(expense['amount'])
+            amount = decimal_amount(expense['amount'])
             category = expense['category']
-            categories_and_expenses[category] = categories_and_expenses.get(category, 0.0) + amount
+            categories_and_expenses[category] = (
+                categories_and_expenses.get(category, Decimal('0')) + amount
+            )
         return categories_and_expenses
 
-    def spending_by_month(self) -> dict[str, float]:
+    def spending_by_month(self) -> dict[str, Decimal]:
         """Aggregate total spending for each month, sorted by year and month."""
         expenses = self.load_all_expenses()
         if not expenses:
             raise ValueError('No expenses found')
-        monthly_totals: dict[str, float] = {}
+        monthly_totals: dict[str, Decimal] = {}
         for expense in expenses:
-            amount = float(expense['amount'])
+            amount = decimal_amount(expense['amount'])
             expense_date = expense['date']
             if isinstance(expense_date, date):
                 key = f'{expense_date.month:02d}-{expense_date.year}'
             else:
                 date_parts = expense_date.split('-')
                 key = f'{date_parts[1]}-{date_parts[2]}'
-            monthly_totals[key] = monthly_totals.get(key, 0.0) + amount
+            monthly_totals[key] = monthly_totals.get(key, Decimal('0')) + amount
 
         def sort_key(month_year: str) -> tuple[int, int]:
             """Return a sortable tuple for month-year strings."""

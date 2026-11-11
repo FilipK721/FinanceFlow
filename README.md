@@ -37,10 +37,11 @@
 - Files are saved with an automatic, date-stamped filename — or provide your own path
 
 ### ⚙️ Settings
-- Switch between currencies (Euro, Dollars, Pounds, Yen, Złoty)
+- Switch between currencies (Euro, Dollars, Pounds, Yen, Złoty); saved expenses and budget limits are converted using the latest online exchange rate
 
 ### 🗂️ Under the hood
-- Persistent storage in a local **SQLite** database via **SQLAlchemy 2.0** — no database server or setup required
+- Persistent storage in a local **SQLite** database via **SQLAlchemy 2.0** — money is represented as `Decimal` and stored as integer minor units
+- Currency conversion uses the latest rate from the Frankfurter API when changing the configured currency
 - Database engine is created lazily (on first use), so importing the package never touches your data file
 - Managers accept an injectable database session, which keeps tests isolated (in-memory SQLite)
 - Full application logging (console + rotating log files)
@@ -68,6 +69,7 @@
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - [git](https://git-scm.com)
+- An internet connection to retrieve current exchange rates when changing currencies
 
 ---
 
@@ -139,6 +141,8 @@ FinanceFlow/
 │   ├── main.py                    # CLI entry point
 │   ├── cli.py                     # Application setup and top-level CLI loop
 │   ├── cli_menus.py               # CLI submenu handlers
+│   ├── currency_rates.py          # Online exchange-rate lookup
+│   ├── money.py                   # Decimal and minor-unit handling
 │   ├── models.py                  # Expense, Category, Currency (domain models)
 │   ├── views.py                   # Terminal UI (rich) and charts (plotext)
 │   ├── config/

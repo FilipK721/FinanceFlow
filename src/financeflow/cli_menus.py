@@ -188,14 +188,15 @@ def export_menu(views: Views, export_manager: ExportManager, console: Console) -
 
 
 def settings_menu(views: Views, data_manager: DataManager, console: Console) -> None:
-    """Run the settings submenu and allow the currency to be reset."""
+    """Run the settings submenu and change the application's currency."""
     while True:
         views.display_settings()
         settings_option = views.get_str('Enter option', ['1', '0'])
         match settings_option:
             case '1':
-                data_manager.set_currency(None)
-                logger.info('currency reset by user')
+                currency = views.get_currency_from_user()
+                data_manager.set_currency(currency)
+                logger.info('currency changed to %s', currency)
                 break
 
             case '0':

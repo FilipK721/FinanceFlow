@@ -1,66 +1,75 @@
 """Budget-limit management for the FinanceFlow application."""
 
+from decimal import Decimal
+
 from financeflow.managers.analytics_manager import AnalyticsManager
 from financeflow.models import Category
 from financeflow.db.models import SettingRow, CategoryLimitRow
 from datetime import date
+from financeflow.money import decimal_amount
 
 
 class BudgetManager(AnalyticsManager):
     """Manage overall and per-category budget limits and their usage percentages."""
 
-    def set_limit(self, limit: float) -> None:
+    def set_limit(self, limit: Decimal | float | int | str) -> None:
         """Save the monthly overall spending limit.
 
         Args:
             limit: Maximum allowed total spending for the current period.
         """
+        amount = decimal_amount(limit)
         existing = self.session.get(SettingRow, 'limit')
         if existing:
-            existing.value = str(limit)
+            existing.value = str(amount)
         else:
-            new_limit = SettingRow(key='limit', value=str(limit))
+            new_limit = SettingRow(key='limit', value=str(amount))
             self.session.add(new_limit)
 
         self.session.commit()
 
-    def get_limit(self) -> float | None:
+    def get_limit(self) -> Decimal | None:
         """Return the configured overall spending limit, if any."""
         existing = self.session.get(SettingRow, 'limit')
         if existing is not None:
-            return float(existing.value)
+            return decimal_amount(existing.value)
         return None
 
-    def set_limit_for_category(self, category: Category, limit: float) -> None:
+    def set_limit_for_category(
+        self,
+        category: Category,
+        limit: Decimal | float | int | str,
+    ) -> None:
         """Save a spending cap for a specific expense category.
 
         Args:
             category: The category for which the limit applies.
             limit: Maximum allowed spending for that category.
         """
+        amount = decimal_amount(limit)
         existing = self.session.get(CategoryLimitRow, category.value)
 
         if existing is not None:
-            existing.limit = limit
+            existing.limit = amount
         else:
-            new_limit = CategoryLimitRow(category=category.value, limit=limit)
+            new_limit = CategoryLimitRow(category=category.value, limit=amount)
             self.session.add(new_limit)
 
         self.session.commit()
 
-    def get_category_limit(self, category: Category) -> float | None:
+    def get_category_limit(self, category: Category) -> Decimal | None:
         """Return the spending limit configured for a given category.
 
         Args:
             category: Category to look up.
 
         Returns:
-            The category limit as a float, or None if no limit is set.
+            The category limit as a Decimal, or None if no limit is set.
         """
         existing = self.session.get(CategoryLimitRow, category.value)
         if existing is None:
             return None
-        return float(existing.limit)
+        return decimal_amount(existing.limit)
 
     def delete_category_limit(self, category: Category) -> None:
         """Remove the limit configured for a specific category.
@@ -122,7 +131,10 @@ class BudgetManager(AnalyticsManager):
         limit = self.get_limit()
         if limit is None or limit == 0:
             return 0
-        total_amount = sum(expense['amount'] for expense in all_expenses)
+        total_amount = sum(
+            (decimal_amount(expense['amount']) for expense in all_expenses),
+            Decimal('0'),
+        )
         return int(total_amount / limit * 100)
 
     def percentage_of_category_limit(self, category: Category) -> int:
@@ -139,5 +151,12 @@ class BudgetManager(AnalyticsManager):
         limit = self.get_category_limit(category)
         if limit is None or limit == 0:
             return 0
-        total_amount = sum(expense['amount'] for expense in all_expenses if expense['category'] == category)
+        total_amount = sum(
+            (
+                decimal_amount(expense['amount'])
+                for expense in all_expenses
+                if expense['category'] == category
+            ),
+            Decimal('0'),
+        )
         return int(total_amount / limit * 100)

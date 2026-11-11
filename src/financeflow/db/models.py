@@ -2,6 +2,9 @@
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import date
+from decimal import Decimal
+
+from financeflow.money import MinorUnitAmount
 
 class Base(DeclarativeBase):
     """Base class for all FinanceFlow database models."""
@@ -13,7 +16,7 @@ class ExpenseRow(Base):
     __tablename__ = 'expenses'
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
-    amount: Mapped[float]
+    amount: Mapped[Decimal] = mapped_column(MinorUnitAmount())
     category: Mapped[str]
     date: Mapped[date]
     description: Mapped[str] = mapped_column(default='')
@@ -24,7 +27,7 @@ class CategoryLimitRow(Base):
 
     __tablename__ = 'category_limits'
     category: Mapped[str] = mapped_column(primary_key=True)
-    limit: Mapped[float]
+    limit: Mapped[Decimal] = mapped_column(MinorUnitAmount())
 
 
 class SettingRow(Base):

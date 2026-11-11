@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 from financeflow.views import Views
 from financeflow.models import Category, Currency
@@ -7,6 +8,15 @@ import pytest
 
 
 class TestViews:
+    def test_get_amount_returns_decimal_and_rounds_to_cents(
+        self,
+        sample_views: Views,
+    ) -> None:
+        with patch('financeflow.views.Prompt.ask', return_value='1.005'):
+            amount = sample_views.get_amount(Currency.EURO)
+
+        assert amount == Decimal('1.01')
+
     class TestGetDate:
         def test_returns_formatted_date(self, sample_views: Views) -> None:
             with patch.object(sample_views, 'get_int', side_effect=[2026, 15, 6]):

@@ -8,10 +8,12 @@ from financeflow.models import Category, Currency
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.prompt import Prompt, FloatPrompt, IntPrompt, Confirm
+from rich.prompt import Prompt, IntPrompt, Confirm
 from datetime import date
+from decimal import Decimal
 from typing import TypedDict
 import plotext as plt  # type: ignore[import-untyped]
+from financeflow.money import decimal_amount
 
 
 class SearchCriteria(TypedDict):
@@ -172,12 +174,11 @@ class Views:
 
         return Category(result)
 
-    def get_amount(self, currency: Currency) -> float:
+    def get_amount(self, currency: Currency) -> Decimal:
         """Prompt for an expense amount in the configured currency."""
-        amount = FloatPrompt.ask(
+        return self._get_decimal_amount(
             f'[bold green]Enter the amount of expense ({currency})[/bold green]'
         )
-        return amount
 
     def get_str(self, message: str, options: list[str] | None = None, show_choices: bool = True) -> str:
         """Prompt the user for a string value or menu choice."""
@@ -189,9 +190,20 @@ class Views:
         result = IntPrompt.ask(f'[bold dark_blue]{message}[/bold dark_blue]', choices=options, show_choices=show_choices)
         return result
 
-    def get_limit(self, currency: Currency) -> float:
+    def get_limit(self, currency: Currency) -> Decimal:
         """Prompt the user to input a budget limit value."""
-        return FloatPrompt.ask(f"[bold green]Enter the limit value ({currency})[/bold green]")
+        return self._get_decimal_amount(
+            f"[bold green]Enter the limit value ({currency})[/bold green]"
+        )
+
+    def _get_decimal_amount(self, message: str) -> Decimal:
+        """Prompt until the user enters a valid monetary amount."""
+        while True:
+            raw_amount = Prompt.ask(message)
+            try:
+                return decimal_amount(raw_amount)
+            except ValueError:
+                self.console.print('❌ Enter a valid amount.', style='bold red')
 
     def confirm(self, message: str) -> bool:
         """Prompt the user for a yes/no confirmation."""
@@ -290,7 +302,7 @@ class Views:
         totals = self.analytics_manager.spending_by_category()
 
         labels = list(totals.keys())
-        values = list(totals.values())
+        values = [float(amount) for amount in totals.values()]
 
         plt.clf()
         plt.theme('dark')
@@ -303,7 +315,7 @@ class Views:
         totals = self.analytics_manager.spending_by_month()
 
         months = list(totals.keys())
-        amounts = list(totals.values())
+        amounts = [float(amount) for amount in totals.values()]
         x_positions = list(range(1, len(months) + 1))
 
         plt.clf()

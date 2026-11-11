@@ -11,9 +11,49 @@ never touches the real database file as a side effect.
 """
 
 import os
-from sqlalchemy import create_engine, Engine
+from decimal import Decimal
+
+from sqlalchemy import MetaData, Table, create_engine, inspect, select, Engine
 from sqlalchemy.orm import sessionmaker, Session
 from financeflow.db.models import Base
+from financeflow.money import decimal_amount
+
+
+_MONEY_COLUMNS = {
+    'expenses': ('amount',),
+    'category_limits': ('limit',),
+}
+
+
+def _migrate_legacy_money_columns(engine: Engine) -> None:
+    """Rebuild legacy REAL money columns as exact integer minor-unit columns."""
+    inspector = inspect(engine)
+    for table_name, money_columns in _MONEY_COLUMNS.items():
+        columns = {column['name']: column['type'] for column in inspector.get_columns(table_name)}
+        if all('INT' in str(columns[column]).upper() for column in money_columns):
+            continue
+
+        legacy_name = f'{table_name}_legacy_money'
+        table = Base.metadata.tables[table_name]
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                f'ALTER TABLE "{table_name}" RENAME TO "{legacy_name}"'
+            )
+            table.create(connection)
+            legacy_table = Table(
+                legacy_name,
+                MetaData(),
+                autoload_with=connection,
+            )
+            migrated_rows: list[dict[str, object]] = []
+            for row in connection.execute(select(legacy_table)).mappings():
+                values = dict(row)
+                for column in money_columns:
+                    values[column] = decimal_amount(Decimal(str(values[column])))
+                migrated_rows.append(values)
+            if migrated_rows:
+                connection.execute(table.insert(), migrated_rows)
+            legacy_table.drop(connection)
 
 
 def get_db_path() -> str:
@@ -30,6 +70,7 @@ def get_engine() -> Engine:
 
     engine = create_engine(f'sqlite:///{db_path}')
     Base.metadata.create_all(engine)
+    _migrate_legacy_money_columns(engine)
     return engine
 
 

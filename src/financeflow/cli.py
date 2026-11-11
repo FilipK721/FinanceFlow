@@ -41,6 +41,12 @@ def run_cli() -> None:
             except ValueError as e:
                 console.print(f'❌ Error: {e}', style='bold red')
                 logger.info('Wrong currency entered: %s', e)
+            
+            except KeyboardInterrupt:
+                logger.info('App closed by ctrl + c')
+                console.print('\nClosing app...', style='bold dark_blue')
+                sys.exit()
+                            
         while True:
             try:
                 if not data_manager.get_currency():
@@ -79,3 +85,8 @@ def run_cli() -> None:
             except Exception as e:
                 logger.error('Unexpected application error')
                 console.print(f'❌ Error: {e.args[0]}', style='bold red')
+
+            except KeyboardInterrupt:
+                logger.info('App closed by ctrl + c')
+                console.print('\nClosing app...', style='bold dark_blue')
+                sys.exit()

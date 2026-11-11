@@ -237,20 +237,22 @@ def test_export_menu_exports_csv(
     )
 
 
-@pytest.mark.parametrize(('option', 'should_reset'), [('1', True), ('0', False)])
-def test_settings_menu_resets_currency_only_when_selected(
+@pytest.mark.parametrize(('option', 'should_change'), [('1', True), ('0', False)])
+def test_settings_menu_changes_currency_only_when_selected(
     menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
     option: str,
-    should_reset: bool,
+    should_change: bool,
 ) -> None:
     views, console, _, _, data_manager = menu_dependencies
     views.get_str.return_value = option
+    views.get_currency_from_user.return_value = Currency.PLN
 
     cli_menus.settings_menu(views, data_manager, console)
 
-    if should_reset:
-        data_manager.set_currency.assert_called_once_with(None)
+    if should_change:
+        data_manager.set_currency.assert_called_once_with(Currency.PLN)
         console.print.assert_not_called()
     else:
         data_manager.set_currency.assert_not_called()
+        views.get_currency_from_user.assert_not_called()
         console.print.assert_called_once()

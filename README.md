@@ -158,7 +158,7 @@ FinanceFlow/
 │       ├── expense_manager.py     # Expense CRUD
 │       ├── analytics_manager.py   # Spending insights & chart data
 │       ├── budget_manager.py      # Limits & budget tracking
-│       └── export_manager.py      # CSV export
+│       └── export_manager.py      # CSV and formatted XLSX exports
 ├── tests/unit/
 │   ├── conftest.py                # In-memory DB session & manager fixtures
 │   ├── test_analytics_manager.py

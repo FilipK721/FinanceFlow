@@ -75,7 +75,8 @@ def run_cli() -> None:
                             break
 
                     case '5':
-                        export_menu(views, export_manager, console)
+                        assert currency is not None
+                        export_menu(views, export_manager, console, currency)
 
                     case '0':
                         console.print('Closing app...', style='bold dark_blue')

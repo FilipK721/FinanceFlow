@@ -228,11 +228,27 @@ def test_export_menu_exports_csv(
     views.get_str.side_effect = ['1', '0']
     export_manager.export_to_csv.return_value = '/tmp/expenses.csv'
 
-    cli_menus.export_menu(views, export_manager, console)
+    cli_menus.export_menu(views, export_manager, console, Currency.EURO)
 
     export_manager.export_to_csv.assert_called_once()
     console.print.assert_any_call(
         'Exported expenses to /tmp/expenses.csv successfully',
+        style='bold green',
+    )
+
+
+def test_export_menu_exports_xlsx(
+    menu_dependencies: tuple[MagicMock, MagicMock, MagicMock, MagicMock, MagicMock],
+) -> None:
+    views, console, _, _, export_manager = menu_dependencies
+    views.get_str.side_effect = ['2', '0']
+    export_manager.export_to_xlsx.return_value = '/tmp/expenses.xlsx'
+
+    cli_menus.export_menu(views, export_manager, console, Currency.PLN)
+
+    export_manager.export_to_xlsx.assert_called_once_with(currency=Currency.PLN)
+    console.print.assert_any_call(
+        'Exported Excel report to /tmp/expenses.xlsx successfully',
         style='bold green',
     )
 

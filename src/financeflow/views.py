@@ -140,6 +140,7 @@ class Views:
         """Show the export submenu."""
         menu_text = (
             '\n[bold cyan]1.[/bold cyan] 🧮 [white]Export to CSV file[/white]'
+            '\n\n[bold cyan]2.[/bold cyan] 📊 [white]Export formatted Excel report[/white]'
             '\n\n[bold red]0.[/bold red] ↩️ [white] Back[/white]\n'
         )
         self.console.print(Panel(menu_text, title='[bold green]📤 Export[/bold green]'))

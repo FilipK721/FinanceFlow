@@ -177,17 +177,29 @@ def budget_menu(
                 break
 
 
-def export_menu(views: Views, export_manager: ExportManager, console: Console) -> None:
-    """Run the CSV export submenu and write stored expenses to disk."""
+def export_menu(
+    views: Views,
+    export_manager: ExportManager,
+    console: Console,
+    currency: Currency,
+) -> None:
+    """Run the export submenu and write stored expenses to disk."""
     while True:
         views.display_export_menu()
-        export_options = views.get_str('Enter option', ['1', '0'])
+        export_options = views.get_str('Enter option', ['1', '2', '0'])
 
         match export_options:
             case '1':
                 path = export_manager.export_to_csv()
                 console.print(f'Exported expenses to {path} successfully', style='bold green')
                 logger.info('Exported expenses to: %s', path)
+            case '2':
+                path = export_manager.export_to_xlsx(currency=currency)
+                console.print(
+                    f'Exported Excel report to {path} successfully',
+                    style='bold green',
+                )
+                logger.info('Exported expenses to XLSX: %s', path)
             case '0':
                 console.print('Going back to menu', style='bold white')
                 break
